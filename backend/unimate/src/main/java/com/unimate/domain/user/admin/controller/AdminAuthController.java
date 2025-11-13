@@ -8,7 +8,6 @@ import com.unimate.domain.user.admin.service.AdminAuthService;
 import com.unimate.domain.user.admin.service.AdminService;
 import com.unimate.global.auth.dto.AccessTokenResponse;
 import com.unimate.global.auth.dto.MessageResponse;
-import com.unimate.global.util.CookieUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -19,6 +18,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import static com.unimate.global.util.CookieUtilsKt.expireCookie;
+import static com.unimate.global.util.CookieUtilsKt.httpOnlyCookie;
 
 @RestController
 @RequiredArgsConstructor
@@ -46,7 +48,7 @@ public class AdminAuthController {
     public ResponseEntity<AdminLoginResponse> login(@Valid @RequestBody AdminLoginRequest request) {
         var tokens = adminAuthService.login(request);
 
-        ResponseCookie cookie = CookieUtils.httpOnlyCookie(
+        ResponseCookie cookie = httpOnlyCookie(
                 "adminRefreshToken",
                 tokens.getRefreshToken(),
                 7L * 24 * 60 * 60,
@@ -74,7 +76,7 @@ public class AdminAuthController {
             @CookieValue(name = "adminRefreshToken", required = false) String refreshToken
     ) {
         adminAuthService.logout(refreshToken);
-        ResponseCookie expired = CookieUtils.expireCookie("adminRefreshToken", cookieSecure, cookieSameSite);
+        ResponseCookie expired = expireCookie("adminRefreshToken", cookieSecure, cookieSameSite);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, expired.toString())

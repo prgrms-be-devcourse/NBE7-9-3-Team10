@@ -7,7 +7,6 @@ import com.unimate.domain.user.user.dto.UserSignupResponse;
 import com.unimate.domain.user.user.service.UserAuthService;
 import com.unimate.global.auth.dto.AccessTokenResponse;
 import com.unimate.global.auth.dto.MessageResponse;
-import com.unimate.global.util.CookieUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -18,6 +17,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import static com.unimate.global.util.CookieUtilsKt.expireCookie;
+import static com.unimate.global.util.CookieUtilsKt.httpOnlyCookie;
 
 @RestController
 @RequiredArgsConstructor
@@ -45,7 +47,7 @@ public class UserAuthController {
     login(@Valid @RequestBody UserLoginRequest request) {
         var tokens = userAuthService.login(request);
 
-        ResponseCookie cookie = CookieUtils.httpOnlyCookie(
+        ResponseCookie cookie = httpOnlyCookie(
                 "refreshToken",
                 tokens.getRefreshToken(),
                 7L * 24 * 60 * 60,
@@ -73,7 +75,7 @@ public class UserAuthController {
             @CookieValue(name = "refreshToken", required = false) String refreshToken
     ) {
         userAuthService.logout(refreshToken);
-        ResponseCookie expired = CookieUtils.expireCookie("refreshToken", cookieSecure, cookieSameSite);
+        ResponseCookie expired = expireCookie("refreshToken", cookieSecure, cookieSameSite);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, expired.toString())
