@@ -78,10 +78,6 @@ class Match(
         // status는 PENDING으로 유지
     }
 
-    fun setConfirmedAt(confirmedAt: LocalDateTime?) {
-        this.confirmedAt = confirmedAt
-    }
-
     /**
      * 사용자의 응답 처리 및 최종 상태 결정
      * @param userId 응답하는 사용자 ID
