@@ -2,6 +2,9 @@ plugins {
     java
     id("org.springframework.boot") version "3.5.6"
     id("io.spring.dependency-management") version "1.1.7"
+    kotlin("jvm") version "1.9.25"
+    kotlin("plugin.spring") version "1.9.25"
+    kotlin("plugin.jpa") version "1.9.25"
 }
 
 group = "com"
@@ -30,12 +33,10 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-web")
 
-
     //WebSocket(STOMP) + spring-messaging
     implementation("org.springframework.boot:spring-boot-starter-websocket")
     //WebSocket에서 @AuthenticationPrincipal 등 Security 연동
     implementation("org.springframework.security:spring-security-messaging")
-
 
     compileOnly("org.projectlombok:lombok")
     //developmentOnly("org.springframework.boot:spring-boot-devtools")
@@ -50,13 +51,13 @@ dependencies {
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6")
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
 
-    implementation ("org.springframework.boot:spring-boot-starter-mail")
+    implementation("org.springframework.boot:spring-boot-starter-mail")
 
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.13")
 
     //부하 테스트를 위해 랜덤 시드 생성 의존성
-    implementation ("org.springframework.boot:spring-boot-starter-batch")
-    implementation ("net.datafaker:datafaker:2.5.2")
+    implementation("org.springframework.boot:spring-boot-starter-batch")
+    implementation("net.datafaker:datafaker:2.5.2")
 
     // Redis
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
@@ -65,6 +66,15 @@ dependencies {
     // Jackson
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    implementation("org.jetbrains.kotlin:kotlin-reflect")
+}
+
+kotlin {
+    compilerOptions {
+        freeCompilerArgs.addAll("-Xjsr305=strict")
+    }
 }
 
 tasks.withType<Test> {
