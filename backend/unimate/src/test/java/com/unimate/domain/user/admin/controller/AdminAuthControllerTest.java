@@ -76,7 +76,7 @@ class AdminAuthControllerTest {
     @Test
     @DisplayName("관리자 로그인 실패 - 비밀번호 불일치 시 401 반환")
     void login_fail_wrongPassword() throws Exception {
-        AdminLoginRequest loginRequest = new AdminLoginRequest(testEmail, "wrongPassword");
+        AdminLoginRequest loginRequest = new AdminLoginRequest(testEmail, "wrongPassword@gmail.com");
 
         mockMvc.perform(post(baseUrl + "/login")
                         .contentType(MediaType.APPLICATION_JSON)

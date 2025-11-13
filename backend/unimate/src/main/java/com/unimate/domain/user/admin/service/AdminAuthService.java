@@ -34,8 +34,8 @@ public class AdminAuthService {
                 req.getName()
         );
 
-        adminUserRepository.save(admin);
-        return new AdminSignupResponse(admin.getId(), admin.getEmail(), admin.getName());
+        AdminUser savedAdmin = adminUserRepository.save(admin);
+        return new AdminSignupResponse(savedAdmin.getId(), savedAdmin.getEmail(), savedAdmin.getName());
     }
 
     @Transactional
