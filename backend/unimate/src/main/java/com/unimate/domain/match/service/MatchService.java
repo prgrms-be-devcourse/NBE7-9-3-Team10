@@ -14,11 +14,9 @@ import com.unimate.domain.user.user.repository.UserRepository;
 import com.unimate.domain.userMatchPreference.entity.UserMatchPreference;
 import com.unimate.domain.userMatchPreference.repository.UserMatchPreferenceRepository;
 import com.unimate.domain.userProfile.entity.UserProfile;
-import com.unimate.domain.userProfile.repository.UserProfileRepository;
 import com.unimate.global.exception.ServiceException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,7 +34,6 @@ public class MatchService {
 
     private final MatchRepository matchRepository;
     private final UserRepository userRepository;
-    private final UserProfileRepository userProfileRepository;
     private final SimilarityCalculator similarityCalculator;
     private final MatchFilterService matchFilterService;
     private final MatchUtilityService matchUtilityService;
@@ -45,10 +42,7 @@ public class MatchService {
     private final UserMatchPreferenceRepository userMatchPreferenceRepository;
     private final MatchCacheService matchCacheService;
 
-    @Value("${cache.redis.enabled:true}")
-    private boolean redisCacheEnabled;
-
-    // 룸메이트 추천 목록 조회 (Redis 캐시 또는 DB 직접 조회)
+    // 룸메이트 추천 목록 조회 (Redis 캐시 사용)
     public MatchRecommendationResponse getMatchRecommendations(
             String senderEmail,
             String sleepPatternFilter,
@@ -57,19 +51,10 @@ public class MatchService {
             LocalDate startDate,
             LocalDate endDate
     ) {
-        if (redisCacheEnabled) {
-            log.debug("🔵 Redis 캐시 모드 - 캐시 활용");
-            return getMatchRecommendationsWithCache(
-                    senderEmail, sleepPatternFilter, ageRangeFilter,
-                    cleaningFrequencyFilter, startDate, endDate
-            );
-        } else {
-            log.debug("🟡 DB 직접 모드 - 기존 로직 사용");
-            return getMatchRecommendationsWithoutCache(
-                    senderEmail, sleepPatternFilter, ageRangeFilter,
-                    cleaningFrequencyFilter, startDate, endDate
-            );
-        }
+        return getMatchRecommendationsWithCache(
+                senderEmail, sleepPatternFilter, ageRangeFilter,
+                cleaningFrequencyFilter, startDate, endDate
+        );
     }
 
     // Redis 캐시 사용 버전
@@ -96,30 +81,6 @@ public class MatchService {
         List<MatchRecommendationResponse.MatchRecommendationItem> recommendations =
                 buildCachedRecommendations(filteredCandidates, senderPreference);
 
-        return new MatchRecommendationResponse(recommendations);
-    }
-
-    // DB 직접 조회 버전
-    private MatchRecommendationResponse getMatchRecommendationsWithoutCache(
-            String senderEmail,
-            String sleepPatternFilter,
-            String ageRangeFilter,
-            String cleaningFrequencyFilter,
-            LocalDate startDate,
-            LocalDate endDate
-    ) {
-        User sender = getUserByEmail(senderEmail);
-        UserMatchPreference senderPreference = userMatchPreferenceRepository.findByUserId(sender.getId())
-                .orElseThrow(() -> ServiceException.notFound("사용자의 매칭 선호도를 찾을 수 없습니다. 먼저 선호도를 등록해주세요."));
-
-        List<UserProfile> filteredCandidates = filterCandidates(
-                sender, sleepPatternFilter, ageRangeFilter,
-                cleaningFrequencyFilter, startDate, endDate
-        );
-
-        List<MatchRecommendationResponse.MatchRecommendationItem> recommendations =
-                buildRecommendations(filteredCandidates, senderPreference);
-        
         return new MatchRecommendationResponse(recommendations);
     }
 
@@ -187,26 +148,6 @@ public class MatchService {
                 .toList();
     }
 
-    // DB 직접 조회 후보 필터링
-    private List<UserProfile> filterCandidates(User sender, String sleepPatternFilter, String ageRangeFilter, 
-            String cleaningFrequencyFilter, LocalDate startDate, LocalDate endDate) {
-        return userProfileRepository.findAll()
-                .stream()
-                .filter(p -> !p.getUser().getId().equals(sender.getId()))
-                // 자동 필터 (시스템에서 처리)
-                .filter(p -> p.getUser().getGender().equals(sender.getGender())) // 같은 성별만 매칭
-                .filter(p -> p.getMatchingEnabled()) // 매칭 활성화
-                .filter(p -> userMatchPreferenceRepository.findByUserId(p.getUser().getId()).isPresent()) // 매칭 선호도 등록된 사용자만
-                .filter(p -> matchFilterService.applyUniversityFilter(p, sender.getUniversity())) // 대학 필터 (같은 대학교만)
-                .filter(p -> !isAlreadyMatched(sender.getId(), p.getUser().getId())) // 이미 매칭된 사용자 제외
-                // 사용자 선택 필터들
-                .filter(p -> matchFilterService.applySleepPatternFilter(p, sleepPatternFilter)) // 수면 패턴 필터
-                .filter(p -> matchFilterService.applyAgeRangeFilter(p, ageRangeFilter)) // 나이대 필터
-                .filter(p -> matchFilterService.applyCleaningFrequencyFilter(p, cleaningFrequencyFilter)) // 청결도 필터
-                .filter(p -> matchFilterService.hasOverlappingPeriodByRange(p, startDate, endDate)) // 거주 기간
-                .toList();
-    }
-
     // 캐시된 데이터로 추천 아이템 생성
     private List<MatchRecommendationResponse.MatchRecommendationItem> buildCachedRecommendations(
             List<CachedUserProfile> candidates, UserMatchPreference senderPreference) {
@@ -231,7 +172,7 @@ public class MatchService {
         MatchStatus matchStatus = existingMatch.map(Match::getMatchStatus).orElse(MatchStatus.NONE);
 
         // 디버깅 로그
-        log.info("🔍 매칭 상태 조회 - senderId: {}, receiverId: {}, matchType: {}, matchStatus: {}",
+        log.info("매칭 상태 조회 - senderId: {}, receiverId: {}, matchType: {}, matchStatus: {}",
                 senderPreference.getUser().getId(), candidate.getUserId(), matchType, matchStatus);
 
         return MatchRecommendationResponse.MatchRecommendationItem.builder()
@@ -273,69 +214,14 @@ public class MatchService {
         return iSentAccepted || theySentAccepted;
     }
 
-    /**
-     * 추천 아이템 생성
-     */
-    private List<MatchRecommendationResponse.MatchRecommendationItem> buildRecommendations(
-            List<UserProfile> candidates, UserMatchPreference senderPreference) {
-        return candidates.stream()
-                .map(candidate -> buildRecommendationItem(candidate, senderPreference))
-                .sorted(Comparator.comparing(MatchRecommendationResponse.MatchRecommendationItem::getPreferenceScore).reversed())
-                .limit(10) // 최대 10명으로 제한
-                .toList();
-    }
-
-    /**
-     * 개별 추천 아이템 생성
-     */
-    private MatchRecommendationResponse.MatchRecommendationItem buildRecommendationItem(
-            UserProfile candidate, UserMatchPreference senderPreference) {
-        BigDecimal similarityScore = BigDecimal.valueOf(similarityCalculator.calculateSimilarity(senderPreference, candidate));
-
-        // 실제 매칭 상태 조회
-        Optional<Match> existingMatch = matchRepository.findBySenderIdAndReceiverId(
-                senderPreference.getUser().getId(), candidate.getUser().getId());
-
-        MatchType matchType = existingMatch.map(Match::getMatchType).orElse(MatchType.NONE);
-        MatchStatus matchStatus = existingMatch.map(Match::getMatchStatus).orElse(MatchStatus.NONE);
-
-        // if (log.isDebugEnabled()) {
-        //     log.debug("🔍 매칭 상태 조회 (DB) - senderId: {}, receiverId: {}, matchType: {}, matchStatus: {}",
-        //             senderPreference.getUser().getId(), candidate.getUser().getId(), matchType, matchStatus);
-        // }
-
-        return MatchRecommendationResponse.MatchRecommendationItem.builder()
-                .receiverId(candidate.getUser().getId())
-                .name(candidate.getUser().getName())
-                .university(candidate.getUser().getUniversity())
-                .studentVerified(candidate.getUser().getStudentVerified())
-                .gender(candidate.getUser().getGender())
-                .age(matchUtilityService.calculateAge(candidate.getUser().getBirthDate()))
-                .mbti(candidate.getMbti())
-                .preferenceScore(similarityScore)
-                .matchType(matchType)
-                .matchStatus(matchStatus)
-                // 추가 프로필 정보
-                .sleepTime(candidate.getSleepTime())
-                .cleaningFrequency(candidate.getCleaningFrequency())
-                .isSmoker(candidate.getIsSmoker())
-                .startUseDate(candidate.getStartUseDate() != null ? candidate.getStartUseDate().toString() : null)
-                .endUseDate(candidate.getEndUseDate() != null ? candidate.getEndUseDate().toString() : null)
-                .build();
-    }
-
     private void validateUserMatchPreference(Long userId) {
         userMatchPreferenceRepository.findByUserId(userId)
             .orElseThrow(() -> ServiceException.notFound("매칭 선호도가 등록되지 않은 사용자입니다."));
     }
 
-    // 후보 프로필 상세 조회 (Redis 캐시 또는 DB 직접 조회)
+    // 후보 프로필 상세 조회 (Redis 캐시 사용)
     public MatchRecommendationDetailResponse getMatchRecommendationDetail(String senderEmail, Long receiverId) {
-        if (redisCacheEnabled) {
-            return getMatchRecommendationDetailWithCache(senderEmail, receiverId);
-        } else {
-            return getMatchRecommendationDetailWithoutCache(senderEmail, receiverId);
-        }
+        return getMatchRecommendationDetailWithCache(senderEmail, receiverId);
     }
 
     // Redis 캐시 사용 버전
@@ -385,58 +271,6 @@ public class MatchService {
                 .birthDate(cachedReceiver.getBirthDate())
                 .startUseDate(cachedReceiver.getStartUseDate())
                 .endUseDate(cachedReceiver.getEndUseDate())
-                .preferenceScore(similarityScore)
-                .matchType(matchType)
-                .matchStatus(matchStatus)
-                .build();
-    }
-
-    // DB 직접 조회 버전
-    private MatchRecommendationDetailResponse getMatchRecommendationDetailWithoutCache(String senderEmail, Long receiverId) {
-        User sender = userRepository.findByEmail(senderEmail)
-                .orElseThrow(() -> ServiceException.notFound("사용자를 찾을 수 없습니다."));
-
-        User receiver = userRepository.findById(receiverId)
-                .orElseThrow(() -> ServiceException.notFound("상대방 사용자를 찾을 수 없습니다."));
-
-        // 매칭 선호도 등록 여부 확인
-        validateUserMatchPreference(receiverId);
-
-        UserProfile receiverProfile = userProfileRepository.findByUserId(receiver.getId())
-                .orElseThrow(() -> ServiceException.notFound("상대방 프로필을 찾을 수 없습니다."));
-
-        UserMatchPreference senderPreference = userMatchPreferenceRepository.findByUserId(sender.getId())
-                .orElseThrow(() -> ServiceException.notFound("사용자의 매칭 선호도를 찾을 수 없습니다."));
-
-        BigDecimal similarityScore = BigDecimal.valueOf(similarityCalculator.calculateSimilarity(senderPreference, receiverProfile));
-
-        Optional<Match> existingMatch = matchRepository.findBySenderIdAndReceiverId(sender.getId(), receiverId);
-
-        MatchType matchType = existingMatch.map(Match::getMatchType).orElse(MatchType.NONE);
-        MatchStatus matchStatus = existingMatch.map(Match::getMatchStatus).orElse(MatchStatus.NONE);
-
-        return MatchRecommendationDetailResponse.builder()
-                .receiverId(receiver.getId())
-                .email(receiver.getEmail())  // 신고 기능을 위한 이메일 추가
-                .name(receiver.getName())
-                .university(receiver.getUniversity())
-                .studentVerified(receiver.getStudentVerified())
-                .mbti(receiverProfile.getMbti())
-                .gender(receiver.getGender())
-                .age(matchUtilityService.calculateAge(receiver.getBirthDate()))
-                .isSmoker(receiverProfile.getIsSmoker())
-                .isPetAllowed(receiverProfile.getIsPetAllowed())
-                .isSnoring(receiverProfile.getIsSnoring())
-                .sleepTime(receiverProfile.getSleepTime())
-                .cleaningFrequency(receiverProfile.getCleaningFrequency())
-                .hygieneLevel(receiverProfile.getHygieneLevel())
-                .noiseSensitivity(receiverProfile.getNoiseSensitivity())
-                .drinkingFrequency(receiverProfile.getDrinkingFrequency())
-                .guestFrequency(receiverProfile.getGuestFrequency())
-                .preferredAgeGap(receiverProfile.getPreferredAgeGap())
-                .birthDate(receiver.getBirthDate())
-                .startUseDate(receiverProfile.getStartUseDate())
-                .endUseDate(receiverProfile.getEndUseDate())
                 .preferenceScore(similarityScore)
                 .matchType(matchType)
                 .matchStatus(matchStatus)
@@ -630,8 +464,13 @@ public class MatchService {
         } else {
             UserMatchPreference senderPreference = userMatchPreferenceRepository.findByUserId(senderId)
                     .orElseThrow(() -> ServiceException.notFound("사용자의 매칭 선호도를 찾을 수 없습니다."));
-            UserProfile receiverProfile = userProfileRepository.findByUserId(receiverId)
-                    .orElseThrow(() -> ServiceException.notFound("상대방 프로필을 찾을 수 없습니다."));
+            
+            // Redis 캐시에서 프로필 조회
+            CachedUserProfile cachedReceiver = matchCacheService.getUserProfileById(receiverId);
+            if (cachedReceiver == null) {
+                throw ServiceException.notFound("상대방 프로필을 찾을 수 없습니다.");
+            }
+            UserProfile receiverProfile = convertToUserProfile(cachedReceiver);
             
             BigDecimal preferenceScore = BigDecimal.valueOf(similarityCalculator.calculateSimilarity(senderPreference, receiverProfile));
             

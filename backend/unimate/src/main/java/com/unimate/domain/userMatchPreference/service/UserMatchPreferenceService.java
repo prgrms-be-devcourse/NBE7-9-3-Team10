@@ -12,7 +12,6 @@ import com.unimate.domain.userProfile.repository.UserProfileRepository;
 import com.unimate.global.exception.ServiceException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,9 +24,6 @@ public class UserMatchPreferenceService {
     private final UserRepository userRepository;
     private final UserProfileRepository userProfileRepository;
     private final MatchCacheService matchCacheService;
-
-    @Value("${cache.redis.enabled:true}")
-    private boolean redisCacheEnabled;
 
     @Transactional
     public MatchPreferenceResponse updateMyMatchPreferences(Long userId, MatchPreferenceRequest requestDto) {
@@ -57,10 +53,8 @@ public class UserMatchPreferenceService {
         UserMatchPreference  updatedPreference = userMatchPreferenceRepository.saveAndFlush(preference);
 
         // 캐시 무효화 (새 유저가 매칭 후보에 포함되도록)
-        if (redisCacheEnabled) {
-            matchCacheService.evictAllCandidatesCache();
-            log.info("✅ 매칭 선호도 등록/수정 - 전체 후보자 캐시 무효화 (userId: {})", userId);
-        }
+        matchCacheService.evictAllCandidatesCache();
+        log.info("매칭 선호도 등록/수정 - 전체 후보자 캐시 무효화 (userId: {})", userId);
 
         // responseDto로 변환하여 반환
         return MatchPreferenceResponse.fromEntity(updatedPreference);
