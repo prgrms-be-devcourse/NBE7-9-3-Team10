@@ -13,7 +13,6 @@ import com.unimate.domain.userProfile.repository.UserProfileRepository;
 import com.unimate.global.exception.ServiceException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,9 +26,6 @@ public class UserProfileService {
     private final UserRepository userRepository;
     private final MatchRepository matchRepository;
     private final MatchCacheService matchCacheService;
-
-    @Value("${cache.redis.enabled:true}")
-    private boolean redisCacheEnabled;
 
     @Transactional
     public ProfileResponse create(String email, ProfileCreateRequest req){
@@ -55,10 +51,8 @@ public class UserProfileService {
 
         UserProfile saved = userProfileRepository.save(profile);
 
-        if (redisCacheEnabled) {
-            matchCacheService.evictUserProfileCache(userRef.getId());
-            log.info("✅ 프로필 생성 - 캐시 무효화 (userId: {})", userRef.getId());
-        }
+        matchCacheService.evictUserProfileCache(userRef.getId());
+        log.info("프로필 생성 - 캐시 무효화 (userId: {})", userRef.getId());
 
         return toResponse(saved);
     }
@@ -77,10 +71,8 @@ public class UserProfileService {
 
         profile.update(req);
 
-        if (redisCacheEnabled) {
-            matchCacheService.evictUserProfileCache(profile.getUser().getId());
-            log.info("✅ 프로필 수정 - 캐시 무효화 (userId: {})", profile.getUser().getId());
-        }
+        matchCacheService.evictUserProfileCache(profile.getUser().getId());
+        log.info("프로필 수정 - 캐시 무효화 (userId: {})", profile.getUser().getId());
 
         return toResponse(profile);
     }
@@ -118,9 +110,7 @@ public class UserProfileService {
 
         matchRepository.deleteUnconfirmedMatchesByUserId(userId, MatchType.REQUEST, MatchStatus.ACCEPTED);
 
-        if (redisCacheEnabled) {
-            matchCacheService.evictUserProfileCache(userId);
-            log.info("✅ 매칭 비활성화 - 캐시 무효화 (userId: {})", userId);
-        }
+        matchCacheService.evictUserProfileCache(userId);
+        log.info("매칭 비활성화 - 캐시 무효화 (userId: {})", userId);
     }
 }
