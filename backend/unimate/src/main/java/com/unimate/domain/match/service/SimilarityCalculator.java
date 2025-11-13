@@ -31,13 +31,13 @@ public class SimilarityCalculator {
         // 항목별 점수 계산 & 카테고리별로 묶음
 
         // 흡연 점수
-        double smokerScore = calculateBooleanScore(preference.getIsSmoker(), profile.getIsSmoker());
+        double smokerScore = calculateBooleanScore(preference.getIsSmoker(), profile.isSmoker());
 
         // 수면 점수
         double sleepScore = calculateIntegerScore(preference.getSleepTime(), profile.getSleepTime());
 
         // 반려동물 점수
-        double petScore = calculateBooleanScore(preference.getIsPetAllowed(), profile.getIsPetAllowed());
+        double petScore = calculateBooleanScore(preference.getIsPetAllowed(), profile.isPetAllowed());
 
         // 나이 차이 점수
         double ageGapScore = calculateAgeGapScore(preference.getPreferredAgeGap(), profile.getUser().getBirthDate());
@@ -49,7 +49,7 @@ public class SimilarityCalculator {
 
         // 소음 점수 (소음 민감도 + 코골이 여부)
         double noiseSensitivityScore = calculateIntegerScore(preference.getNoiseSensitivity(), profile.getNoiseSensitivity());
-        double snoringScore = calculateBooleanScore(preference.getIsSnoring(), profile.getIsSnoring());
+        double snoringScore = calculateBooleanScore(preference.getIsSnoring(), profile.isSnoring());
         double noiseScore = (noiseSensitivityScore + snoringScore) / 2.0;
 
         // 생활방식 점수 (음주 빈도 + 방문자 빈도)

@@ -142,24 +142,24 @@ package com.unimate.global.config;
          int noiseSensitivity = (sleepTime >= 4) ? 4 : (sleepTime <= 2) ? 2 : 3;
          int drinkingFrequency = isSmoker ? 3 : 2; // 흡연자는 음주 빈도가 높을 가능성
          int guestFrequency = isPetAllowed ? 4 : 3; // 반려동물 허용하는 사람은 손님 초대도 관대
-        
-         UserProfile profile = UserProfile.builder()
-                 .user(user)
-                 .sleepTime(sleepTime)
-                 .cleaningFrequency(cleaningFrequency)
-                 .isSmoker(isSmoker)
-                 .isPetAllowed(isPetAllowed)
-                 .isSnoring(isSnoring)
-                 .preferredAgeGap(5)
-                 .hygieneLevel(hygieneLevel)
-                 .drinkingFrequency(drinkingFrequency)
-                 .noiseSensitivity(noiseSensitivity)
-                 .guestFrequency(guestFrequency)
-                 .mbti(mbti)
-                 .startUseDate(LocalDate.parse(startDate))
-                 .endUseDate(LocalDate.parse(endDate))
-                 .matchingEnabled(true)
-                 .build();
+
+         UserProfile profile = new UserProfile(
+                 user,
+                 sleepTime,
+                 isPetAllowed,
+                 isSmoker,
+                 cleaningFrequency,
+                 5, // preferredAgeGap
+                 hygieneLevel,
+                 isSnoring,
+                 drinkingFrequency,
+                 noiseSensitivity,
+                 guestFrequency,
+                 mbti,
+                 LocalDate.parse(startDate),
+                 LocalDate.parse(endDate),
+                 true
+         );
          return userProfileRepository.save(profile);
      }
 

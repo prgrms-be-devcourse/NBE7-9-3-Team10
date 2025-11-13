@@ -108,24 +108,8 @@ public class MatchService {
         if (cached.getStudentVerified()) {
             user.verifyStudent();
         }
-        
-        return UserProfile.builder()
-                .user(user)
-                .sleepTime(cached.getSleepTime())
-                .isPetAllowed(cached.getIsPetAllowed())
-                .isSmoker(cached.getIsSmoker())
-                .cleaningFrequency(cached.getCleaningFrequency())
-                .preferredAgeGap(cached.getPreferredAgeGap())
-                .hygieneLevel(cached.getHygieneLevel())
-                .isSnoring(cached.getIsSnoring())
-                .drinkingFrequency(cached.getDrinkingFrequency())
-                .noiseSensitivity(cached.getNoiseSensitivity())
-                .guestFrequency(cached.getGuestFrequency())
-                .mbti(cached.getMbti())
-                .startUseDate(cached.getStartUseDate())
-                .endUseDate(cached.getEndUseDate())
-                .matchingEnabled(cached.getMatchingEnabled())
-                .build();
+
+        return UserProfile.Companion.fromCached(user, cached);
     }
 
     // 캐시된 후보 필터링
