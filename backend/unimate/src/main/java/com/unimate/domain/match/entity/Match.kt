@@ -71,6 +71,39 @@ class Match(
     var rematchRound: Int = 0
 ) : BaseEntity() {
 
+    companion object {
+        @JvmStatic
+        fun createLike(
+            sender: User,
+            receiver: User,
+            preferenceScore: BigDecimal
+        ): Match {
+            return Match(
+                sender = sender,
+                receiver = receiver,
+                matchType = MatchType.LIKE,
+                matchStatus = MatchStatus.PENDING,
+                preferenceScore = preferenceScore
+            )
+        }
+
+        @JvmStatic
+        fun createRequest(
+            sender: User,
+            receiver: User,
+            preferenceScore: BigDecimal
+        ): Match {
+            return Match(
+                sender = sender,
+                receiver = receiver,
+                matchType = MatchType.REQUEST,
+                matchStatus = MatchStatus.PENDING,
+                preferenceScore = preferenceScore
+            )
+        }
+    }
+
+
     fun upgradeToRequest(requestSender: User, requestReceiver: User) {
         this.sender = requestSender
         this.receiver = requestReceiver
@@ -84,13 +117,20 @@ class Match(
      * @param response 사용자의 응답 (ACCEPTED or REJECTED)
      */
     fun processUserResponse(userId: Long?, response: MatchStatus) {
+        require(userId != null) {
+            "userId는 null일 수 없습니다."
+        }
         require(response == MatchStatus.ACCEPTED || response == MatchStatus.REJECTED) {
             "응답은 ACCEPTED 또는 REJECTED만 가능합니다."
         }
 
         when (userId) {
-            this.sender.id -> this.senderResponse = response
-            this.receiver.id -> this.receiverResponse = response
+            this.sender.id -> {
+                this.senderResponse = response
+            }
+            this.receiver.id -> {
+                this.receiverResponse = response
+            }
             else -> throw IllegalArgumentException("매칭 참여자가 아닙니다.")
         }
 
@@ -106,15 +146,14 @@ class Match(
      */
     private fun updateFinalStatus() {
         when {
-            senderResponse == MatchStatus.ACCEPTED && receiverResponse == MatchStatus.ACCEPTED -> {
-                this.matchStatus = MatchStatus.ACCEPTED
-                this.confirmedAt = LocalDateTime.now()
-            }
             senderResponse == MatchStatus.REJECTED || receiverResponse == MatchStatus.REJECTED -> {
                 this.matchStatus = MatchStatus.REJECTED
                 this.confirmedAt = LocalDateTime.now()
             }
-
+            senderResponse == MatchStatus.ACCEPTED && receiverResponse == MatchStatus.ACCEPTED -> {
+                this.matchStatus = MatchStatus.ACCEPTED
+                this.confirmedAt = LocalDateTime.now()
+            }
             else -> {
                 this.matchStatus = MatchStatus.PENDING
             }
@@ -125,6 +164,9 @@ class Match(
      * 특정 유저 응답 여부
      */
     fun hasUserResponded(userId: Long?): Boolean {
+        if (userId == null) return false 
+        if (this.sender.id == null || this.receiver.id == null) return false
+
         return when (userId) {
             this.sender.id -> this.senderResponse != MatchStatus.PENDING
             this.receiver.id -> this.receiverResponse != MatchStatus.PENDING
@@ -136,6 +178,9 @@ class Match(
      * 특정 사용자의 응답 상태 조회
      */
     fun getUserResponse(userId: Long?): MatchStatus {
+        if (userId == null) return MatchStatus.PENDING
+        if (this.sender.id == null || this.receiver.id == null) return MatchStatus.PENDING
+
         return when (userId) {
             this.sender.id -> this.senderResponse
             this.receiver.id -> this.receiverResponse
