@@ -86,10 +86,7 @@ class UserControllerTest {
     @Test
     @DisplayName("PATCH /api/v1/user/name - 사용자 이름 수정 성공")
     void updateUserName_success() throws Exception {
-        UserUpdateNameRequest request = new UserUpdateNameRequest();
-        var field = UserUpdateNameRequest.class.getDeclaredField("name");
-        field.setAccessible(true);
-        field.set(request, "새로운이름");
+        UserUpdateNameRequest request = new UserUpdateNameRequest("새로운이름");
 
         mockMvc.perform(patch(baseUrl + "/name")
                         .header("Authorization", "Bearer " + accessToken)
@@ -112,13 +109,7 @@ class UserControllerTest {
         verification.markVerified();
         verificationRepository.save(verification);
 
-        UserUpdateEmailRequest request = new UserUpdateEmailRequest();
-        var emailField = UserUpdateEmailRequest.class.getDeclaredField("newEmail");
-        emailField.setAccessible(true);
-        emailField.set(request, newEmail);
-        var codeField = UserUpdateEmailRequest.class.getDeclaredField("code");
-        codeField.setAccessible(true);
-        codeField.set(request, code);
+        UserUpdateEmailRequest request = new UserUpdateEmailRequest(newEmail, code);
 
         mockMvc.perform(patch(baseUrl + "/email")
                         .header("Authorization", "Bearer " + accessToken)
@@ -139,13 +130,7 @@ class UserControllerTest {
         Verification verification = new Verification(newEmail, "000000", LocalDateTime.now().plusMinutes(5));
         verificationRepository.save(verification);
 
-        UserUpdateEmailRequest request = new UserUpdateEmailRequest();
-        var emailField = UserUpdateEmailRequest.class.getDeclaredField("newEmail");
-        emailField.setAccessible(true);
-        emailField.set(request, newEmail);
-        var codeField = UserUpdateEmailRequest.class.getDeclaredField("code");
-        codeField.setAccessible(true);
-        codeField.set(request, "000000");
+        UserUpdateEmailRequest request = new UserUpdateEmailRequest(newEmail, "000000");
 
         mockMvc.perform(patch(baseUrl + "/email")
                         .header("Authorization", "Bearer " + accessToken)

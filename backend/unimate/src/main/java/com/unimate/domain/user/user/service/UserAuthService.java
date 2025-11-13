@@ -43,10 +43,10 @@ public class UserAuthService {
         );
         user.verifyStudent();
 
-        userRepository.save(user);
+        User savedUser = userRepository.save(user);
         verificationService.consumeVerification(req.getEmail());
 
-        return new UserSignupResponse(user.getId(), user.getEmail(), user.getName());
+        return new UserSignupResponse(savedUser.getId(), savedUser.getEmail(), savedUser.getName());
     }
 
     @Transactional
