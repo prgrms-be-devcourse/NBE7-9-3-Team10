@@ -94,41 +94,41 @@ public class UserProfileControllerTest {
     }
 
     private ProfileCreateRequest sampleCreateReq() {
-        return ProfileCreateRequest.builder()
-                .sleepTime(1)
-                .isPetAllowed(true)
-                .isSmoker(false)
-                .cleaningFrequency(2)
-                .preferredAgeGap(3)
-                .hygieneLevel(3)
-                .isSnoring(true)
-                .drinkingFrequency(2)
-                .noiseSensitivity(3)
-                .guestFrequency(1)
-                .mbti("INFP")
-                .startUseDate(LocalDate.now())
-                .endUseDate(LocalDate.now())
-                .matchingEnabled(false)
-                .build();
+        return new ProfileCreateRequest(
+                1
+                ,true
+                ,false
+                ,2
+                ,3
+                ,3
+                ,true
+                ,2
+                ,3
+                ,1
+                ,"INFP"
+                ,LocalDate.now()
+                ,LocalDate.now()
+                ,false
+        );
     }
 
     private ProfileCreateRequest sampleUpdateReq() {
-        return ProfileCreateRequest.builder()
-                .sleepTime(1)
-                .isPetAllowed(false)
-                .isSmoker(false)
-                .cleaningFrequency(2)
-                .preferredAgeGap(3)
-                .hygieneLevel(1)
-                .isSnoring(false)
-                .drinkingFrequency(2)
-                .noiseSensitivity(4)
-                .guestFrequency(1)
-                .mbti("ENTP")
-                .startUseDate(LocalDate.now())
-                .endUseDate(LocalDate.now())
-                .matchingEnabled(false)
-                .build();
+        return new ProfileCreateRequest(
+                1
+                ,false
+                ,false
+                ,2
+                ,3
+                ,1
+                ,false
+                ,2
+                ,4
+                ,1
+                ,"ENTP"
+                ,LocalDate.now()
+                ,LocalDate.now()
+                ,false
+                );
     }
 
     //---------------------- TEST CODE ----------------------------
