@@ -1,10 +1,7 @@
 package com.unimate.domain.report.controller;
 
 
-import com.unimate.domain.report.dto.AdminReportActionRequest;
 import com.unimate.domain.report.dto.AdminReportActionResponse;
-import com.unimate.domain.report.dto.ReportDetailResponse;
-import com.unimate.domain.report.dto.ReportListResponse;
 import com.unimate.domain.report.service.AdminReportService;
 import com.unimate.global.jwt.CustomUserPrincipal;
 import io.swagger.v3.oas.annotations.Operation;

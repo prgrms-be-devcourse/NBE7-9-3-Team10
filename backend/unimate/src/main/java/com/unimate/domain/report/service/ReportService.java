@@ -1,10 +1,6 @@
 package com.unimate.domain.report.service;
 
 import com.unimate.domain.report.dto.ReportCreateRequest;
-import com.unimate.domain.report.dto.ReportResponse;
-import com.unimate.domain.report.entity.ReportStatus;
-import com.unimate.domain.report.entity.Report;
-import com.unimate.domain.report.repository.ReportRepository;
 import com.unimate.domain.user.user.entity.User;
 import com.unimate.domain.user.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;

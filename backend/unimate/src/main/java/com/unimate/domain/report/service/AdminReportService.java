@@ -2,11 +2,7 @@ package com.unimate.domain.report.service;
 
 import com.unimate.domain.match.repository.MatchRepository;
 import com.unimate.domain.notification.repository.NotificationRepository;
-import com.unimate.domain.report.dto.AdminReportActionRequest;
-import com.unimate.domain.report.dto.AdminReportActionResponse;
-import com.unimate.domain.report.dto.ReportDetailResponse;
-import com.unimate.domain.report.dto.ReportListResponse;
-import com.unimate.domain.report.dto.ReportSummary;
+import com.unimate.domain.report.dto.*;
 import com.unimate.domain.report.entity.Report;
 import com.unimate.domain.report.entity.ReportStatus;
 import com.unimate.domain.report.repository.ReportRepository;

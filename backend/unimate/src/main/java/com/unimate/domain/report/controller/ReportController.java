@@ -1,7 +1,6 @@
 package com.unimate.domain.report.controller;
 
 import com.unimate.domain.report.dto.ReportCreateRequest;
-import com.unimate.domain.report.dto.ReportResponse;
 import com.unimate.domain.report.service.ReportService;
 import com.unimate.global.jwt.CustomUserPrincipal;
 import io.swagger.v3.oas.annotations.Operation;
