@@ -27,7 +27,7 @@ data class ProfileResponse(
     companion object {
         fun from(entity: UserProfile): ProfileResponse =
             ProfileResponse(
-                id = entity.id!!,
+                id = entity.id,
                 sleepTime = entity.sleepTime,
                 isPetAllowed = entity.isPetAllowed,
                 isSmoker = entity.isSmoker,
