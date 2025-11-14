@@ -475,13 +475,7 @@ public class MatchService {
             BigDecimal preferenceScore = BigDecimal.valueOf(similarityCalculator.calculateSimilarity(senderPreference, receiverProfile));
             
             // 기존 기록이 없는 경우 (처음 '좋아요')
-            Match newLike = Match.builder()
-                    .sender(sender)
-                    .receiver(receiver)
-                    .matchType(MatchType.LIKE)
-                    .matchStatus(MatchStatus.PENDING)
-                    .preferenceScore(preferenceScore)
-                    .build();
+            Match newLike = Match.createLike(sender, receiver, preferenceScore);
             matchRepository.save(newLike);
 
             // (연타 방지) 이미 보낸 '좋아요' 알림이 없다면 새로 생성
