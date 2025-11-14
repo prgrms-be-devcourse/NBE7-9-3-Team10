@@ -29,7 +29,7 @@ public class UserController {
     @GetMapping
     @Operation(summary = "유저 정보 조회")
     public ResponseEntity<UserInfoResponse> getUserInfo(@AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
-        User user = userService.findByEmail(userPrincipal.getEmail());
+        User user = userService.findByEmail(userPrincipal.email);
         return ResponseEntity.ok(
                 new UserInfoResponse(
                         user.getEmail(),
@@ -46,7 +46,7 @@ public class UserController {
             @AuthenticationPrincipal CustomUserPrincipal userPrincipal,
             @RequestBody UserUpdateNameRequest request
             ) {
-        User user = userService.updateName(userPrincipal.getEmail(), request.getName());
+        User user = userService.updateName(userPrincipal.email, request.getName());
         return ResponseEntity.ok(
                 new UserUpdateResponse(
                         user.getEmail(),
@@ -64,7 +64,7 @@ public class UserController {
             @AuthenticationPrincipal CustomUserPrincipal userPrincipal,
             @Valid @RequestBody UserUpdateEmailRequest request
     ) {
-        User updated = userService.updateEmail(userPrincipal.getEmail(), request);
+        User updated = userService.updateEmail(userPrincipal.email, request);
 
         JwtToken newToken = jwtProvider.generateToken(updated.getEmail(), updated.getId());
 
