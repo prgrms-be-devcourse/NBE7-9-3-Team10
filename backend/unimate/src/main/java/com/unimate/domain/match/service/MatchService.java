@@ -159,24 +159,24 @@ public class MatchService {
         log.info("매칭 상태 조회 - senderId: {}, receiverId: {}, matchType: {}, matchStatus: {}",
                 senderPreference.getUser().getId(), candidate.getUserId(), matchType, matchStatus);
 
-        return MatchRecommendationResponse.MatchRecommendationItem.builder()
-                .receiverId      (candidate.getUserId())
-                .name            (candidate.getName())
-                .university      (candidate.getUniversity())
-                .studentVerified (candidate.getStudentVerified())
-                .gender          (candidate.getGender())
-                .age             (matchUtilityService.calculateAge(candidate.getBirthDate()))
-                .mbti            (candidate.getMbti())
-                .preferenceScore (similarityScore)
-                .matchType       (matchType)
-                .matchStatus     (matchStatus)
+        return new MatchRecommendationResponse.MatchRecommendationItem(
+                candidate.getUserId(),
+                candidate.getName(),
+                candidate.getUniversity(),
+                candidate.getStudentVerified(),
+                candidate.getGender(),
+                matchUtilityService.calculateAge(candidate.getBirthDate()),
+                candidate.getMbti(),
+                similarityScore,
+                matchType,
+                matchStatus,
                 // 추가 프로필 정보
-                .sleepTime       (candidate.getSleepTime())
-                .cleaningFrequency(candidate.getCleaningFrequency())
-                .isSmoker        (candidate.isSmoker())
-                .startUseDate    (candidate.getStartUseDate() != null ? candidate.getStartUseDate().toString() : null)
-                .endUseDate      (candidate.getEndUseDate() != null ? candidate.getEndUseDate().toString() : null)
-                .build();
+                candidate.getSleepTime(),
+                candidate.getCleaningFrequency(),
+                candidate.isSmoker(),
+                candidate.getStartUseDate() != null ? candidate.getStartUseDate().toString() : null,
+                candidate.getEndUseDate() != null ? candidate.getEndUseDate().toString() : null
+        );
     }
 
     /**
@@ -233,32 +233,32 @@ public class MatchService {
         MatchType matchType = existingMatch.map(Match::getMatchType).orElse(MatchType.NONE);
         MatchStatus matchStatus = existingMatch.map(Match::getMatchStatus).orElse(MatchStatus.NONE);
 
-        return MatchRecommendationDetailResponse.builder()
-                .receiverId(cachedReceiver.getUserId())
-                .email(cachedReceiver.getEmail())  // 신고 기능을 위한 이메일 추가
-                .name(cachedReceiver.getName())
-                .university(cachedReceiver.getUniversity())
-                .studentVerified(cachedReceiver.getStudentVerified())
-                .mbti(cachedReceiver.getMbti())
-                .gender(cachedReceiver.getGender())
-                .age(matchUtilityService.calculateAge(cachedReceiver.getBirthDate()))
-                .isSmoker(cachedReceiver.isSmoker())
-                .isPetAllowed(cachedReceiver.isPetAllowed())
-                .isSnoring(cachedReceiver.isSnoring())
-                .sleepTime(cachedReceiver.getSleepTime())
-                .cleaningFrequency(cachedReceiver.getCleaningFrequency())
-                .hygieneLevel(cachedReceiver.getHygieneLevel())
-                .noiseSensitivity(cachedReceiver.getNoiseSensitivity())
-                .drinkingFrequency(cachedReceiver.getDrinkingFrequency())
-                .guestFrequency(cachedReceiver.getGuestFrequency())
-                .preferredAgeGap(cachedReceiver.getPreferredAgeGap())
-                .birthDate(cachedReceiver.getBirthDate())
-                .startUseDate(cachedReceiver.getStartUseDate())
-                .endUseDate(cachedReceiver.getEndUseDate())
-                .preferenceScore(similarityScore)
-                .matchType(matchType)
-                .matchStatus(matchStatus)
-                .build();
+        return new MatchRecommendationDetailResponse(
+                cachedReceiver.getUserId(),
+                cachedReceiver.getEmail(),
+                cachedReceiver.getName(),
+                cachedReceiver.getUniversity(),
+                cachedReceiver.getStudentVerified(),
+                cachedReceiver.getMbti(),
+                cachedReceiver.getGender(),
+                matchUtilityService.calculateAge(cachedReceiver.getBirthDate()),
+                cachedReceiver.isSmoker(),
+                cachedReceiver.isPetAllowed(),
+                cachedReceiver.isSnoring(),
+                cachedReceiver.getSleepTime(),
+                cachedReceiver.getCleaningFrequency(),
+                cachedReceiver.getHygieneLevel(),
+                cachedReceiver.getNoiseSensitivity(),
+                cachedReceiver.getDrinkingFrequency(),
+                cachedReceiver.getGuestFrequency(),
+                cachedReceiver.getPreferredAgeGap(),
+                cachedReceiver.getBirthDate(),
+                cachedReceiver.getStartUseDate(),
+                cachedReceiver.getEndUseDate(),
+                similarityScore,
+                matchType,
+                matchStatus
+        );
     }
 
     /**
@@ -339,17 +339,14 @@ public class MatchService {
         int accepted = (int) matches.stream().filter(match -> match.getMatchStatus() == MatchStatus.ACCEPTED).count();
         int rejected = (int) matches.stream().filter(match -> match.getMatchStatus() == MatchStatus.REJECTED).count();
 
-        MatchStatusResponse.SummaryInfo summary = MatchStatusResponse.SummaryInfo.builder()
-                .total(total)
-                .pending(pending)
-                .accepted(accepted)
-                .rejected(rejected)
-                .build();
+        MatchStatusResponse.SummaryInfo summary = new MatchStatusResponse.SummaryInfo(
+                total,
+                pending,
+                accepted,
+                rejected
+        );
 
-        return MatchStatusResponse.builder()
-                .matches(matchItems)
-                .summary(summary)
-                .build();
+        return new MatchStatusResponse(matchItems, summary);
     }
 
     /**
