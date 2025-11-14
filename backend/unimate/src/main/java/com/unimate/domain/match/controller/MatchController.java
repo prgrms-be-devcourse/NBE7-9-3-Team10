@@ -136,28 +136,32 @@ public class MatchController {
 
     // 매칭 확정 응답 생성 헬퍼 메서드
     private MatchConfirmResponse buildMatchConfirmResponse(Match match, String message) {
-        return MatchConfirmResponse.builder()
-                .id(match.getId())
-                .senderId(match.getSender().getId())
-                .receiverId(match.getReceiver().getId())
-                .matchType(match.getMatchType())
-                .matchStatus(match.getMatchStatus())
-                .preferenceScore(match.getPreferenceScore())
-                .confirmedAt(match.getConfirmedAt())
-                .message(message)
-                .sender(MatchConfirmResponse.SenderInfo.builder()
-                        .id(match.getSender().getId())
-                        .name(match.getSender().getName())
-                        .email(match.getSender().getEmail())
-                        .university(match.getSender().getUniversity())
-                        .build())
-                .receiver(MatchConfirmResponse.ReceiverInfo.builder()
-                        .id(match.getReceiver().getId())
-                        .name(match.getReceiver().getName())
-                        .age(matchUtilityService.calculateAge(match.getReceiver().getBirthDate()))
-                        .university(match.getReceiver().getUniversity())
-                        .email(match.getReceiver().getEmail())
-                        .build())
-                .build();
+        MatchConfirmResponse.SenderInfo senderInfo = new MatchConfirmResponse.SenderInfo(
+                match.getSender().getId(),
+                match.getSender().getName(),
+                match.getSender().getEmail(),
+                match.getSender().getUniversity()
+        );
+
+        MatchConfirmResponse.ReceiverInfo receiverInfo = new MatchConfirmResponse.ReceiverInfo(
+                match.getReceiver().getId(),
+                match.getReceiver().getName(),
+                matchUtilityService.calculateAge(match.getReceiver().getBirthDate()),
+                match.getReceiver().getUniversity(),
+                match.getReceiver().getEmail()
+        );
+
+        return new MatchConfirmResponse(
+                match.getId(),
+                match.getSender().getId(),
+                match.getReceiver().getId(),
+                match.getMatchType(),
+                match.getMatchStatus(),
+                match.getPreferenceScore(),
+                match.getConfirmedAt(),
+                message,
+                senderInfo,
+                receiverInfo
+        );
     }
 }

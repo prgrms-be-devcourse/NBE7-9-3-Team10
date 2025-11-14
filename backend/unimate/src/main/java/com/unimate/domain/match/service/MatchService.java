@@ -159,24 +159,24 @@ public class MatchService {
         log.info("매칭 상태 조회 - senderId: {}, receiverId: {}, matchType: {}, matchStatus: {}",
                 senderPreference.getUser().getId(), candidate.getUserId(), matchType, matchStatus);
 
-        return MatchRecommendationResponse.MatchRecommendationItem.builder()
-                .receiverId      (candidate.getUserId())
-                .name            (candidate.getName())
-                .university      (candidate.getUniversity())
-                .studentVerified (candidate.getStudentVerified())
-                .gender          (candidate.getGender())
-                .age             (matchUtilityService.calculateAge(candidate.getBirthDate()))
-                .mbti            (candidate.getMbti())
-                .preferenceScore (similarityScore)
-                .matchType       (matchType)
-                .matchStatus     (matchStatus)
+        return new MatchRecommendationResponse.MatchRecommendationItem(
+                candidate.getUserId(),
+                candidate.getName(),
+                candidate.getUniversity(),
+                candidate.getStudentVerified(),
+                candidate.getGender(),
+                matchUtilityService.calculateAge(candidate.getBirthDate()),
+                candidate.getMbti(),
+                similarityScore,
+                matchType,
+                matchStatus,
                 // 추가 프로필 정보
-                .sleepTime       (candidate.getSleepTime())
-                .cleaningFrequency(candidate.getCleaningFrequency())
-                .isSmoker        (candidate.isSmoker())
-                .startUseDate    (candidate.getStartUseDate() != null ? candidate.getStartUseDate().toString() : null)
-                .endUseDate      (candidate.getEndUseDate() != null ? candidate.getEndUseDate().toString() : null)
-                .build();
+                candidate.getSleepTime(),
+                candidate.getCleaningFrequency(),
+                candidate.isSmoker(),
+                candidate.getStartUseDate().toString(),
+                candidate.getEndUseDate().toString()
+        );
     }
 
     /**
@@ -189,18 +189,18 @@ public class MatchService {
         boolean iSentAccepted = matchRepository.findBySenderIdAndReceiverId(senderId, candidateId)
                 .map(match -> match.getMatchType() == MatchType.REQUEST && (match.getMatchStatus() == MatchStatus.ACCEPTED || match.getMatchStatus() == MatchStatus.PENDING))
                 .orElse(false);
-        
+
         // 상대방이 나에게 보낸 매칭이 ACCEPTED 상태인지 확인. PENDING도 확인하도록 수정.
         boolean theySentAccepted = matchRepository.findBySenderIdAndReceiverId(candidateId, senderId)
                 .map(match -> match.getMatchType() == MatchType.REQUEST && (match.getMatchStatus() == MatchStatus.ACCEPTED || match.getMatchStatus() == MatchStatus.PENDING))
                 .orElse(false);
-        
+
         return iSentAccepted || theySentAccepted;
     }
 
     private void validateUserMatchPreference(Long userId) {
         userMatchPreferenceRepository.findByUserId(userId)
-            .orElseThrow(() -> ServiceException.notFound("매칭 선호도가 등록되지 않은 사용자입니다."));
+                .orElseThrow(() -> ServiceException.notFound("매칭 선호도가 등록되지 않은 사용자입니다."));
     }
 
     // 후보 프로필 상세 조회 (Redis 캐시 사용)
@@ -225,7 +225,7 @@ public class MatchService {
 
         UserProfile receiverProfile = convertToUserProfile(cachedReceiver);
         BigDecimal similarityScore = BigDecimal.valueOf(
-            similarityCalculator.calculateSimilarity(senderPreference, receiverProfile)
+                similarityCalculator.calculateSimilarity(senderPreference, receiverProfile)
         );
 
         Optional<Match> existingMatch = matchRepository.findBySenderIdAndReceiverId(sender.getId(), receiverId);
@@ -233,37 +233,37 @@ public class MatchService {
         MatchType matchType = existingMatch.map(Match::getMatchType).orElse(MatchType.NONE);
         MatchStatus matchStatus = existingMatch.map(Match::getMatchStatus).orElse(MatchStatus.NONE);
 
-        return MatchRecommendationDetailResponse.builder()
-                .receiverId(cachedReceiver.getUserId())
-                .email(cachedReceiver.getEmail())  // 신고 기능을 위한 이메일 추가
-                .name(cachedReceiver.getName())
-                .university(cachedReceiver.getUniversity())
-                .studentVerified(cachedReceiver.getStudentVerified())
-                .mbti(cachedReceiver.getMbti())
-                .gender(cachedReceiver.getGender())
-                .age(matchUtilityService.calculateAge(cachedReceiver.getBirthDate()))
-                .isSmoker(cachedReceiver.isSmoker())
-                .isPetAllowed(cachedReceiver.isPetAllowed())
-                .isSnoring(cachedReceiver.isSnoring())
-                .sleepTime(cachedReceiver.getSleepTime())
-                .cleaningFrequency(cachedReceiver.getCleaningFrequency())
-                .hygieneLevel(cachedReceiver.getHygieneLevel())
-                .noiseSensitivity(cachedReceiver.getNoiseSensitivity())
-                .drinkingFrequency(cachedReceiver.getDrinkingFrequency())
-                .guestFrequency(cachedReceiver.getGuestFrequency())
-                .preferredAgeGap(cachedReceiver.getPreferredAgeGap())
-                .birthDate(cachedReceiver.getBirthDate())
-                .startUseDate(cachedReceiver.getStartUseDate())
-                .endUseDate(cachedReceiver.getEndUseDate())
-                .preferenceScore(similarityScore)
-                .matchType(matchType)
-                .matchStatus(matchStatus)
-                .build();
+        return new MatchRecommendationDetailResponse(
+                cachedReceiver.getUserId(),
+                cachedReceiver.getEmail(),
+                cachedReceiver.getName(),
+                cachedReceiver.getUniversity(),
+                cachedReceiver.getStudentVerified(),
+                cachedReceiver.getMbti(),
+                cachedReceiver.getGender(),
+                matchUtilityService.calculateAge(cachedReceiver.getBirthDate()),
+                cachedReceiver.isSmoker(),
+                cachedReceiver.isPetAllowed(),
+                cachedReceiver.isSnoring(),
+                cachedReceiver.getSleepTime(),
+                cachedReceiver.getCleaningFrequency(),
+                cachedReceiver.getHygieneLevel(),
+                cachedReceiver.getNoiseSensitivity(),
+                cachedReceiver.getDrinkingFrequency(),
+                cachedReceiver.getGuestFrequency(),
+                cachedReceiver.getPreferredAgeGap(),
+                cachedReceiver.getBirthDate(),
+                cachedReceiver.getStartUseDate(),
+                cachedReceiver.getEndUseDate(),
+                similarityScore,
+                matchType,
+                matchStatus
+        );
     }
 
     /**
      * 룸메이트 최종 확정
-     * 양방향 응답 추적: 각 사용자의 응답을 개별적으로 기록하고, 
+     * 양방향 응답 추적: 각 사용자의 응답을 개별적으로 기록하고,
      * 양쪽 모두 확정해야만 최종 매칭 성사
      */
     @Transactional
@@ -339,17 +339,14 @@ public class MatchService {
         int accepted = (int) matches.stream().filter(match -> match.getMatchStatus() == MatchStatus.ACCEPTED).count();
         int rejected = (int) matches.stream().filter(match -> match.getMatchStatus() == MatchStatus.REJECTED).count();
 
-        MatchStatusResponse.SummaryInfo summary = MatchStatusResponse.SummaryInfo.builder()
-                .total(total)
-                .pending(pending)
-                .accepted(accepted)
-                .rejected(rejected)
-                .build();
+        MatchStatusResponse.SummaryInfo summary = new MatchStatusResponse.SummaryInfo(
+                total,
+                pending,
+                accepted,
+                rejected
+        );
 
-        return MatchStatusResponse.builder()
-                .matches(matchItems)
-                .summary(summary)
-                .build();
+        return new MatchStatusResponse(matchItems, summary);
     }
 
     /**
@@ -448,16 +445,16 @@ public class MatchService {
         } else {
             UserMatchPreference senderPreference = userMatchPreferenceRepository.findByUserId(senderId)
                     .orElseThrow(() -> ServiceException.notFound("사용자의 매칭 선호도를 찾을 수 없습니다."));
-            
+
             // Redis 캐시에서 프로필 조회
             CachedUserProfile cachedReceiver = matchCacheService.getUserProfileById(receiverId);
             if (cachedReceiver == null) {
                 throw ServiceException.notFound("상대방 프로필을 찾을 수 없습니다.");
             }
             UserProfile receiverProfile = convertToUserProfile(cachedReceiver);
-            
+
             BigDecimal preferenceScore = BigDecimal.valueOf(similarityCalculator.calculateSimilarity(senderPreference, receiverProfile));
-            
+
             // 기존 기록이 없는 경우 (처음 '좋아요')
             Match newLike = Match.createLike(sender, receiver, preferenceScore);
             matchRepository.save(newLike);
