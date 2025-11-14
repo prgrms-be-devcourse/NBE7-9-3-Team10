@@ -103,6 +103,52 @@ class AdminReportService(
         val report = reportRepository.findById(reportId)
             .orElseThrow { ServiceException.notFound("해당 ID의 신고를 찾을 수 없습니다 : $reportId") }
 
-    }
+        if (report.reportStatus == ReportStatus.RESOLVED || report.reportStatus == ReportStatus.REJECTED) {
+            throw ServiceException.conflict("이미 처리된 신고입니다.")
+        }
 
+        // 피신고자가 이미 탈퇴하여 정보가 없는 경우
+        val reportedUser = report.reported
+        if (reportedUser == null) {
+            report.updateStatus(ReportStatus.RESOLVED) // 신고 상태만 변경
+            return AdminReportActionResponse(report.id!!, ReportStatus.RESOLVED.name, "신고 대상자를 찾을 수 없어 신고만 처리되었습니다.")
+        }
+
+        // 분기 처리
+        return when (request.action) {
+            // 신고 'REJECTED' 처리
+            AdminReportActionRequest.ActionType.REJECT -> {
+                report.updateStatus(ReportStatus.REJECTED)
+                AdminReportActionResponse(report.id!!, ReportStatus.REJECTED.name, "신고가 반려 처리되었습니다.")
+            }
+            // 피신고자 '강제 탈퇴' 처리
+            AdminReportActionRequest.ActionType.DEACTIVATE -> {
+
+                // 탈퇴할 유저와 관련된 모든 신고에서 해당 유저 정보 null로 변경
+                val relatedReports = reportRepository.findByReporterOrReported(reportedUser, reportedUser)
+                relatedReports.forEach { r ->
+                    if (r.reporter?.id == reportedUser.id) {
+                        r.reporter = null
+                    }
+                    if (r.reported?.id == reportedUser.id) {
+                        r.reported = null
+                    }
+                }
+
+                // User를 참조하는 다른 자식 테이블 데이터들 우선 삭제
+                matchRepository.deleteAllBySenderOrReceiver(reportedUser, reportedUser)
+                userProfileRepository.deleteByUserId(reportedUser.id!!)
+                userMatchPreferenceRepository.deleteByUserId(reportedUser.id!!)
+                notificationRepository.deleteByUser(reportedUser)
+
+                // 현재 처리 중인 신고 건 상태 'RESOLVED'로 변경
+                report.updateStatus(ReportStatus.RESOLVED)
+
+                // 모든 참조 정리 후, 최종적으로 유저 삭제
+                userRepository.delete(reportedUser)
+
+                AdminReportActionResponse(report.id!!, ReportStatus.RESOLVED.name, "신고 대상자 계정이 강제 탈퇴 처리되었습니다.")
+            }
+        }
+    }
 }
