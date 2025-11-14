@@ -9,16 +9,16 @@ data class MatchResultResponse(
     val results: List<MatchResultItem> = emptyList()
 ) {
     data class MatchResultItem(
-        val id: Long? = null,
-        val senderId: Long? = null,
-        val senderName: String? = null,
-        val receiverId: Long? = null,
-        val receiverName: String? = null,
-        val matchType: MatchType? = null,
-        val matchStatus: MatchStatus? = null,
-        val preferenceScore: BigDecimal? = null,
-        val createdAt: LocalDateTime? = null,
-        val updatedAt: LocalDateTime? = null,
-        val confirmedAt: LocalDateTime? = null
+        val id: Long,
+        val senderId: Long,
+        val senderName: String,
+        val receiverId: Long,
+        val receiverName: String,
+        val matchType: MatchType,
+        val matchStatus: MatchStatus,
+        val preferenceScore: BigDecimal,
+        val createdAt: LocalDateTime,
+        val updatedAt: LocalDateTime,
+        val confirmedAt: LocalDateTime
     )
 }

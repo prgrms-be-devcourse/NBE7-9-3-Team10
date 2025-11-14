@@ -174,8 +174,8 @@ public class MatchService {
                 candidate.getSleepTime(),
                 candidate.getCleaningFrequency(),
                 candidate.isSmoker(),
-                candidate.getStartUseDate() != null ? candidate.getStartUseDate().toString() : null,
-                candidate.getEndUseDate() != null ? candidate.getEndUseDate().toString() : null
+                candidate.getStartUseDate().toString(),
+                candidate.getEndUseDate().toString()
         );
     }
 

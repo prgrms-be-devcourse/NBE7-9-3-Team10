@@ -186,7 +186,7 @@ class MatchControllerTest {
                 .andExpect(jsonPath("$.recommendations").isArray())
                 .andExpect(jsonPath("$.recommendations.length()").value(2)); // receiver, thirdUser
     }
-    
+
     @Test
     @DisplayName("추천 상세 조회 성공 - Match가 있는 경우")
     void getCandidateDetail_success_withMatch() throws Exception {
@@ -229,9 +229,7 @@ class MatchControllerTest {
         Match m = Match.createRequest(sender, receiver, BigDecimal.valueOf(0.85));
         matchRepository.save(m);
 
-        MatchConfirmRequest req = MatchConfirmRequest.builder()
-                .action("accept")
-                .build();
+        MatchConfirmRequest req = new MatchConfirmRequest("accept");
 
         mockMvc.perform(
                         put(baseUrl + "/" + m.getId() + "/confirm")
@@ -253,9 +251,7 @@ class MatchControllerTest {
         Match m = Match.createRequest(sender, receiver, BigDecimal.valueOf(0.85));
         matchRepository.save(m);
 
-        MatchConfirmRequest req = MatchConfirmRequest.builder()
-                .action("accept")
-                .build();
+        MatchConfirmRequest req = new MatchConfirmRequest("accept");
 
         mockMvc.perform(
                         put(baseUrl + "/" + m.getId() + "/confirm")

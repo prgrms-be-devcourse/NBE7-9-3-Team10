@@ -68,11 +68,6 @@ public class MatchController {
             @Valid @RequestBody MatchConfirmRequest request,
             @AuthenticationPrincipal CustomUserPrincipal user
     ) {
-        String action = request.getAction();
-        if (action == null) {
-            return ResponseEntity.badRequest().build();
-        }
-
         return switch (request.getAction()) {
             case "accept" -> {
                 Match match = matchService.confirmMatch(id, user.getUserId());

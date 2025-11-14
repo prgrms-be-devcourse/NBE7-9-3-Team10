@@ -9,12 +9,12 @@ data class MatchListResponse(
     val matches: List<MatchListItem> = emptyList()
 ) {
     data class MatchListItem(
-        val id: Long? = null,
-        val senderId: Long? = null,
-        val receiverId: Long? = null,
-        val matchType: MatchType? = null,
-        val matchStatus: MatchStatus? = null,
-        val preferenceScore: BigDecimal? = null,
+        val id: Long,
+        val senderId: Long,
+        val receiverId: Long,
+        val matchType: MatchType,
+        val matchStatus: MatchStatus,
+        val preferenceScore: BigDecimal,
         val confirmedAt: LocalDateTime? = null,
         val message: String? = null, // 매칭 상태 메시지
 
@@ -22,18 +22,18 @@ data class MatchListResponse(
         val receiver: ReceiverInfo? = null // 수신자 정보
     ) {
         data class SenderInfo(
-            val id: Long? = null,
-            val name: String? = null,
-            val email: String? = null,
-            val university: String? = null
+            val id: Long,
+            val name: String,
+            val email: String,
+            val university: String
         )
 
         data class ReceiverInfo(
-            val id: Long? = null,
-            val name: String? = null,
-            val age: Int? = null,
-            val university: String? = null,
-            val email: String? = null
+            val id: Long,
+            val name: String,
+            val age: Int,
+            val university: String,
+            val email: String
         )
     }
 }

@@ -9,5 +9,5 @@ data class MatchConfirmRequest(
         regexp = "^(accept|reject)$",
         message = "액션은 accept 또는 reject여야 합니다"
     )
-    var action:String? = null
+    var action: String
 )
