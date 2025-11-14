@@ -83,7 +83,13 @@ class MatchControllerTest {
         createUserPreference(thirdUser);
 
         // 캐시 무효화 후 재로딩 (테스트 데이터가 캐시에 반영되도록)
+        // 개별 프로필 캐시도 무효화 (getUserProfileById에서 사용)
+        matchCacheService.evictUserProfileCache(sender.getId());
+        matchCacheService.evictUserProfileCache(receiver.getId());
+        matchCacheService.evictUserProfileCache(thirdUser.getId());
+        // 전체 후보 캐시도 무효화
         matchCacheService.evictAllCandidatesCache();
+
 
         senderToken = login(sender.getEmail(), "password123!");
         receiverToken = login(receiver.getEmail(), "password123!");
