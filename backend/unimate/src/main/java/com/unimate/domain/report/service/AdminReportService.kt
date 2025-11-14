@@ -127,8 +127,8 @@ class AdminReportService(
 
                 // User를 참조하는 다른 자식 테이블 데이터들 우선 삭제
                 matchRepository.deleteAllBySenderOrReceiver(reportedUser, reportedUser)
-                userProfileRepository.deleteByUserId(reportedUser.id)
-                userMatchPreferenceRepository.deleteByUserId(reportedUser.id)
+                userProfileRepository.deleteByUserId(reportedUser.id!!)
+                userMatchPreferenceRepository.deleteByUserId(reportedUser.id!!)
                 notificationRepository.deleteByUser(reportedUser)
 
                 // 현재 처리 중인 신고 건 상태 'RESOLVED'로 변경
