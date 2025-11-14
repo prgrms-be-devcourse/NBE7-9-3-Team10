@@ -1,28 +1,28 @@
 //package com.unimate.global.config;
 //
-//import com.unimate.domain.chatroom.entity.Chatroom;
-//import com.unimate.domain.chatroom.repository.ChatroomRepository;
-//import com.unimate.domain.match.entity.Match;
-//import com.unimate.domain.match.entity.MatchStatus;
-//import com.unimate.domain.match.entity.MatchType;
-//import com.unimate.domain.match.repository.MatchRepository;
-//import com.unimate.domain.message.entity.Message;
-//import com.unimate.domain.message.repository.MessageRepository;
-//import com.unimate.domain.user.user.entity.Gender;
-//import com.unimate.domain.user.user.entity.User;
-//import com.unimate.domain.user.user.repository.UserRepository;
-//import com.unimate.domain.userMatchPreference.entity.UserMatchPreference;
-//import com.unimate.domain.userMatchPreference.repository.UserMatchPreferenceRepository;
-//import com.unimate.domain.userProfile.entity.UserProfile;
-//import com.unimate.domain.userProfile.repository.UserProfileRepository;
-//import lombok.RequiredArgsConstructor;
-//import org.springframework.boot.CommandLineRunner;
-//import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-//import org.springframework.stereotype.Component;
-//import org.springframework.transaction.annotation.Transactional;
+// import com.unimate.domain.chatroom.entity.Chatroom;
+// import com.unimate.domain.chatroom.repository.ChatroomRepository;
+// import com.unimate.domain.match.entity.Match;
+// import com.unimate.domain.match.entity.MatchStatus;
+// import com.unimate.domain.match.entity.MatchType;
+// import com.unimate.domain.match.repository.MatchRepository;
+// import com.unimate.domain.message.entity.Message;
+// import com.unimate.domain.message.repository.MessageRepository;
+// import com.unimate.domain.user.user.entity.Gender;
+// import com.unimate.domain.user.user.entity.User;
+// import com.unimate.domain.user.user.repository.UserRepository;
+// import com.unimate.domain.userMatchPreference.entity.UserMatchPreference;
+// import com.unimate.domain.userMatchPreference.repository.UserMatchPreferenceRepository;
+// import com.unimate.domain.userProfile.entity.UserProfile;
+// import com.unimate.domain.userProfile.repository.UserProfileRepository;
+// import lombok.RequiredArgsConstructor;
+// import org.springframework.boot.CommandLineRunner;
+// import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+// import org.springframework.stereotype.Component;
+// import org.springframework.transaction.annotation.Transactional;
 //
-//import java.math.BigDecimal;
-//import java.time.LocalDate;
+// import java.math.BigDecimal;
+// import java.time.LocalDate;
 //
 // @Component
 // @RequiredArgsConstructor
@@ -143,23 +143,23 @@
 //         int drinkingFrequency = isSmoker ? 3 : 2; // 흡연자는 음주 빈도가 높을 가능성
 //         int guestFrequency = isPetAllowed ? 4 : 3; // 반려동물 허용하는 사람은 손님 초대도 관대
 //
-//         UserProfile profile = UserProfile.builder()
-//                 .user(user)
-//                 .sleepTime(sleepTime)
-//                 .cleaningFrequency(cleaningFrequency)
-//                 .isSmoker(isSmoker)
-//                 .isPetAllowed(isPetAllowed)
-//                 .isSnoring(isSnoring)
-//                 .preferredAgeGap(5)
-//                 .hygieneLevel(hygieneLevel)
-//                 .drinkingFrequency(drinkingFrequency)
-//                 .noiseSensitivity(noiseSensitivity)
-//                 .guestFrequency(guestFrequency)
-//                 .mbti(mbti)
-//                 .startUseDate(LocalDate.parse(startDate))
-//                 .endUseDate(LocalDate.parse(endDate))
-//                 .matchingEnabled(true)
-//                 .build();
+//         UserProfile profile = new UserProfile(
+//                 user,
+//                 sleepTime,
+//                 isPetAllowed,
+//                 isSmoker,
+//                 cleaningFrequency,
+//                 5, // preferredAgeGap
+//                 hygieneLevel,
+//                 isSnoring,
+//                 drinkingFrequency,
+//                 noiseSensitivity,
+//                 guestFrequency,
+//                 mbti,
+//                 LocalDate.parse(startDate),
+//                 LocalDate.parse(endDate),
+//                 true
+//         );
 //         return userProfileRepository.save(profile);
 //     }
 //
@@ -182,28 +182,22 @@
 //         userMatchPreferenceRepository.save(preference);
 //     }
 //
-//    private Match createMatch(User sender, User receiver, MatchType matchType, MatchStatus matchStatus, BigDecimal preferenceScore) {
-//        Match match;
+//     private Match createMatch(User sender, User receiver, MatchType matchType, MatchStatus matchStatus, BigDecimal preferenceScore) {
+//         Match match = Match.builder()
+//                 .sender(sender)
+//                 .receiver(receiver)
+//                 .matchType(matchType)
+//                 .matchStatus(matchStatus)
+//                 .preferenceScore(preferenceScore)
+//                 .build();
 //
-//        // MatchType에 따라 적절한 factory 함수 사용
-//        if (matchType == MatchType.REQUEST) {
-//            match = Match.createRequest(sender, receiver, preferenceScore);
-//        } else {
-//            match = Match.createLike(sender, receiver, preferenceScore);
-//        }
+//         // ACCEPTED 상태인 경우 confirmedAt 설정 (확정 시점 시뮬레이션)
+//         if (matchStatus == MatchStatus.ACCEPTED) {
+//             match.setConfirmedAt(java.time.LocalDateTime.now().minusDays(1)); // 1일 전 확정으로 설정
+//         }
 //
-//        // matchStatus 설정 (factory 함수는 항상 PENDING으로 생성하므로 수동 설정 필요)
-//        match.setMatchStatus(matchStatus);
-//
-//        // ACCEPTED 상태인 경우 senderResponse와 receiverResponse도 ACCEPTED로 설정
-//        if (matchStatus == MatchStatus.ACCEPTED) {
-//            match.setSenderResponse(MatchStatus.ACCEPTED);
-//            match.setReceiverResponse(MatchStatus.ACCEPTED);
-//            match.setConfirmedAt(java.time.LocalDateTime.now().minusDays(1)); // 1일 전 확정으로 설정
-//        }
-//
-//        return matchRepository.save(match);
-//    }
+//         return matchRepository.save(match);
+//     }
 //
 //     private Chatroom createChatroom(Long user1Id, Long user2Id) {
 //         Chatroom chatroom = Chatroom.create(user1Id, user2Id);

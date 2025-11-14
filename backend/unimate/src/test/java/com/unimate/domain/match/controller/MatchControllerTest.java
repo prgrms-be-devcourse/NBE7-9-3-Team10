@@ -13,6 +13,7 @@ import com.unimate.domain.userMatchPreference.entity.UserMatchPreference;
 import com.unimate.domain.userMatchPreference.repository.UserMatchPreferenceRepository;
 import com.unimate.domain.userProfile.entity.UserProfile;
 import com.unimate.domain.userProfile.repository.UserProfileRepository;
+import com.unimate.domain.match.service.MatchCacheService;
 import com.unimate.global.mail.EmailService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -49,6 +50,7 @@ class MatchControllerTest {
     @Autowired private UserProfileRepository userProfileRepository;
     @Autowired private UserMatchPreferenceRepository userMatchPreferenceRepository;
     @Autowired private MatchRepository matchRepository;
+    @Autowired private MatchCacheService matchCacheService;
     @MockitoBean private MailSender mailSender;
     @MockitoBean private EmailService emailService;
 
@@ -79,6 +81,9 @@ class MatchControllerTest {
         createUserPreference(sender);
         createUserPreference(receiver);
         createUserPreference(thirdUser);
+
+        // 캐시 무효화 후 재로딩 (테스트 데이터가 캐시에 반영되도록)
+        matchCacheService.evictAllCandidatesCache();
 
         senderToken = login(sender.getEmail(), "password123!");
         receiverToken = login(receiver.getEmail(), "password123!");
