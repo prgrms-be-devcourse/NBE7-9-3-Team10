@@ -4,7 +4,6 @@ import com.unimate.domain.verification.entity.Verification;
 import com.unimate.domain.verification.repository.VerificationRepository;
 import com.unimate.global.exception.ServiceException;
 import com.unimate.global.mail.EmailService;
-import com.unimate.global.util.EmailValidator;
 import com.unimate.global.util.VerificationCodeGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +11,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+
+import static com.unimate.global.util.EmailValidatorKt.isSchoolEmail;
 
 @Slf4j
 @Service
@@ -24,7 +25,7 @@ public class VerificationService {
 
     @Transactional
     public void sendVerificationCode(String email) {
-        if (!EmailValidator.isSchoolEmail(email)) {
+        if (!isSchoolEmail(email)) {
             throw ServiceException.badRequest("학교 이메일만 인증 가능합니다.");
         }
 
