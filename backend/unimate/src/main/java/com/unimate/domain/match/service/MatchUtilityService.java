@@ -1,14 +1,13 @@
 package com.unimate.domain.match.service;
 
-import java.time.LocalDate;
-
-import org.springframework.stereotype.Service;
-
 import com.unimate.domain.match.dto.MatchResultResponse;
 import com.unimate.domain.match.dto.MatchStatusResponse;
 import com.unimate.domain.match.entity.Match;
 import com.unimate.domain.match.entity.MatchStatus;
 import com.unimate.domain.user.user.entity.User;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
 
 /**
  * 매칭 관련 유틸리티 함수들을 담당하는 서비스
@@ -50,16 +49,16 @@ public class MatchUtilityService {
      */
     public MatchStatusResponse.MatchStatusItem toMatchStatusItem(Match match, Long currentUserId) {
         String message = getStatusMessage(match.getMatchStatus());
-        
+
         // 현재 사용자 기준으로 상대방 정보 설정
-        User partner = match.getSender().getId().equals(currentUserId) 
-            ? match.getReceiver() 
-            : match.getSender();
+        User partner = match.getSender().getId().equals(currentUserId)
+                ? match.getReceiver()
+                : match.getSender();
 
         // 현재 사용자와 상대방의 응답 상태 조회
         MatchStatus myResponse = match.getUserResponse(currentUserId);
         MatchStatus partnerResponse;
-        
+
         if (match.getSender().getId().equals(currentUserId)) {
             partnerResponse = match.getReceiverResponse();
         } else {
@@ -67,29 +66,32 @@ public class MatchUtilityService {
         }
 
         // 상대방의 응답 대기 중 여부 판단
-        boolean waitingForPartner = (myResponse != MatchStatus.PENDING) 
-                                    && (partnerResponse == MatchStatus.PENDING);
+        boolean waitingForPartner = (myResponse != MatchStatus.PENDING)
+                && (partnerResponse == MatchStatus.PENDING);
 
-        return MatchStatusResponse.MatchStatusItem.builder()
-                .id(match.getId())
-                .senderId(match.getSender().getId())
-                .receiverId(match.getReceiver().getId())
-                .matchType(match.getMatchType())
-                .matchStatus(match.getMatchStatus())
-                .preferenceScore(match.getPreferenceScore())
-                .createdAt(match.getCreatedAt())
-                .confirmedAt(match.getConfirmedAt())
-                .message(message)
-                .myResponse(myResponse)
-                .partnerResponse(partnerResponse)
-                .waitingForPartner(waitingForPartner)
-                .partner(MatchStatusResponse.MatchStatusItem.PartnerInfo.builder()
-                        .id(partner.getId())
-                        .name(partner.getName())
-                        .email(partner.getEmail())
-                        .university(partner.getUniversity())
-                        .build())
-                .build();
+        MatchStatusResponse.MatchStatusItem.PartnerInfo partnerInfo =
+                new MatchStatusResponse.MatchStatusItem.PartnerInfo(
+                        partner.getId(),
+                        partner.getName(),
+                        partner.getEmail(),
+                        partner.getUniversity()
+                );
+
+        return new MatchStatusResponse.MatchStatusItem(
+                match.getId(),
+                match.getSender().getId(),
+                match.getReceiver().getId(),
+                match.getMatchType(),
+                match.getMatchStatus(),
+                match.getPreferenceScore(),
+                match.getCreatedAt(),
+                match.getConfirmedAt(),
+                message,
+                myResponse,
+                partnerResponse,
+                waitingForPartner,
+                partnerInfo
+        );
     }
 
     /**
@@ -97,10 +99,10 @@ public class MatchUtilityService {
      */
     public MatchResultResponse.MatchResultItem toMatchResultItem(Match match, Long currentUserId) {
         // 현재 사용자 기준으로 상대방 정보 설정
-        User partner = match.getSender().getId().equals(currentUserId) 
-            ? match.getReceiver() 
-            : match.getSender();
-            
+        User partner = match.getSender().getId().equals(currentUserId)
+                ? match.getReceiver()
+                : match.getSender();
+
         return new MatchResultResponse.MatchResultItem(
                 match.getId(),
                 currentUserId,
