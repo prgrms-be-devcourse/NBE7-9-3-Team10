@@ -31,24 +31,7 @@ public class UserProfileService {
     public ProfileResponse create(String email, ProfileCreateRequest req){
         User userRef = userRepository.findByEmail(email)
                 .orElseThrow(() -> ServiceException.notFound("이메일에 해당하는 유저를 찾을 수 없습니다."));
-        UserProfile profile = UserProfile.builder()
-                .user             (userRef)
-                .sleepTime        (req.getSleepTime())
-                .isPetAllowed     (req.getIsPetAllowed())
-                .isSmoker         (req.getIsSmoker())
-                .cleaningFrequency(req.getCleaningFrequency())
-                .preferredAgeGap  (req.getPreferredAgeGap())
-                .hygieneLevel     (req.getHygieneLevel())
-                .isSnoring        (req.getIsSnoring())
-                .drinkingFrequency(req.getDrinkingFrequency())
-                .noiseSensitivity (req.getNoiseSensitivity())
-                .guestFrequency   (req.getGuestFrequency())
-                .mbti             (req.getMbti())
-                .startUseDate     (req.getStartUseDate())
-                .endUseDate       (req.getEndUseDate())
-                .matchingEnabled  (req.getMatchingEnabled())
-                .build();
-
+        UserProfile profile = UserProfile.Companion.fromRequest(userRef, req);
         UserProfile saved = userProfileRepository.save(profile);
 
         matchCacheService.evictUserProfileCache(userRef.getId());
@@ -79,25 +62,7 @@ public class UserProfileService {
 
 
     private ProfileResponse toResponse(UserProfile p) {
-        return ProfileResponse.builder()
-                .id(p.getId())
-                .sleepTime(p.getSleepTime())
-                .isPetAllowed(p.getIsPetAllowed())
-                .isSmoker(p.getIsSmoker())
-                .cleaningFrequency(p.getCleaningFrequency())
-                .preferredAgeGap(p.getPreferredAgeGap())
-                .hygieneLevel(p.getHygieneLevel())
-                .isSnoring(p.getIsSnoring())
-                .drinkingFrequency(p.getDrinkingFrequency())
-                .noiseSensitivity(p.getNoiseSensitivity())
-                .guestFrequency(p.getGuestFrequency())
-                .mbti(p.getMbti())
-                .startUseDate(p.getStartUseDate())
-                .endUseDate(p.getEndUseDate())
-                .matchingEnabled(p.getMatchingEnabled())
-                .createdAt(p.getCreatedAt())
-                .updatedAt(p.getUpdatedAt())
-                .build();
+        return ProfileResponse.Companion.from(p);
     }
 
     // 룸메이트 매칭 비활성화

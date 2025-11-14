@@ -13,6 +13,7 @@ import com.unimate.domain.userMatchPreference.entity.UserMatchPreference;
 import com.unimate.domain.userMatchPreference.repository.UserMatchPreferenceRepository;
 import com.unimate.domain.userProfile.entity.UserProfile;
 import com.unimate.domain.userProfile.repository.UserProfileRepository;
+import com.unimate.domain.match.service.MatchCacheService;
 import com.unimate.global.mail.EmailService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -49,6 +50,7 @@ class MatchControllerTest {
     @Autowired private UserProfileRepository userProfileRepository;
     @Autowired private UserMatchPreferenceRepository userMatchPreferenceRepository;
     @Autowired private MatchRepository matchRepository;
+    @Autowired private MatchCacheService matchCacheService;
     @MockitoBean private MailSender mailSender;
     @MockitoBean private EmailService emailService;
 
@@ -80,6 +82,9 @@ class MatchControllerTest {
         createUserPreference(receiver);
         createUserPreference(thirdUser);
 
+        // 캐시 무효화 후 재로딩 (테스트 데이터가 캐시에 반영되도록)
+        matchCacheService.evictAllCandidatesCache();
+
         senderToken = login(sender.getEmail(), "password123!");
         receiverToken = login(receiver.getEmail(), "password123!");
     }
@@ -98,23 +103,23 @@ class MatchControllerTest {
     }
 
     private void createUserProfile(User user, boolean enabled) {
-        UserProfile profile = UserProfile.builder()
-                .user(user)
-                .sleepTime(3)  // normal (1=very_late, 2=late, 3=normal, 4=early, 5=very_early)
-                .isPetAllowed(true)
-                .isSmoker(false)
-                .cleaningFrequency(3)  // weekly (1=rarely, 2=monthly, 3=weekly, 4=several_times_weekly, 5=daily)
-                .preferredAgeGap(2)
-                .hygieneLevel(3)
-                .isSnoring(false)
-                .drinkingFrequency(1)
-                .noiseSensitivity(2)
-                .guestFrequency(1)
-                .mbti("INTP")
-                .startUseDate(LocalDate.now())
-                .endUseDate(LocalDate.now().plusMonths(6))
-                .matchingEnabled(enabled)
-                .build();
+        UserProfile profile = new UserProfile(
+                user
+                ,3
+                ,true
+                ,false
+                ,3
+                ,2
+                ,3
+                ,false
+                ,1
+                ,2
+                ,1
+                ,"INTP"
+                ,LocalDate.now()
+                ,LocalDate.now()
+                ,enabled
+        );
         userProfileRepository.save(profile);
     }
 
