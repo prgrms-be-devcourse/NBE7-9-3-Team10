@@ -46,21 +46,12 @@ class AdminReportService(
     fun getReports(adminId: Long, pageable: Pageable, status: String?, keyword: String?): ReportListResponse {
         checkIsAdmin(adminId)
 
-        // Specification 객체 생성 (동적 쿼리)
-        // 초기 상태
-        var spec: Specification<Report> = Specification { root, _, _ -> null}
+        // var대신 val 쓰고 if문 대신 컬렉션이랑 고차 함수
+        val spec = listOfNotNull(
+            status?.takeIf { it.isNotBlank() }?.let { ReportSpecification.withStatus(ReportStatus.valueOf(it.uppercase())) },
+            keyword?.takeIf { it.isNotBlank() }?.let { ReportSpecification.withKeyword(it) }
+        ).reduceOrNull { acc, specification -> acc.and(specification) }
 
-        // 검색 조건(status) 있으면, 상태 검색 조건 추가
-        if (!status.isNullOrBlank()) {
-            spec = spec.and(ReportSpecification.withStatus(ReportStatus.valueOf(status.uppercase())))
-        }
-
-        // 검색 조건(keyword) 있으면, 키워드 검색 조건 추가
-        if (!keyword.isNullOrBlank()) {
-            spec = spec.and(ReportSpecification.withKeyword(keyword))
-        }
-
-        // 생성된 Specification 조건으로 DB에서 신고 목록 페이징하여 조회
         val reportPage: Page<Report> = reportRepository.findAll(spec, pageable)
 
         // 조회된 Report 엔티티 페이지를 ReportSummary dto 페이지로 변환
@@ -107,22 +98,21 @@ class AdminReportService(
             throw ServiceException.conflict("이미 처리된 신고입니다.")
         }
 
-        // 피신고자가 이미 탈퇴하여 정보가 없는 경우
-        val reportedUser = report.reported
-        if (reportedUser == null) {
-            report.updateStatus(ReportStatus.RESOLVED) // 신고 상태만 변경
-            return AdminReportActionResponse(report.id!!, ReportStatus.RESOLVED.name, "신고 대상자를 찾을 수 없어 신고만 처리되었습니다.")
-        }
-
-        // 분기 처리
-        return when (request.action) {
+        // if문 굳이 쓰지 않고 when 안에서 해결
+        return when {
+            // 피신고자가 이미 탈퇴한 경우
+            report.reported == null -> {
+                report.updateStatus(ReportStatus.RESOLVED)
+                AdminReportActionResponse(report.id!!, ReportStatus.RESOLVED.name, "신고 대상자를 찾을 수 없어 신고만 처리되었습니다.")
+            }
             // 신고 'REJECTED' 처리
-            AdminReportActionRequest.ActionType.REJECT -> {
+            request.action == AdminReportActionRequest.ActionType.REJECT -> {
                 report.updateStatus(ReportStatus.REJECTED)
                 AdminReportActionResponse(report.id!!, ReportStatus.REJECTED.name, "신고가 반려 처리되었습니다.")
             }
-            // 피신고자 '강제 탈퇴' 처리
-            AdminReportActionRequest.ActionType.DEACTIVATE -> {
+            // 피신고자 '강제 탈퇴'처리
+            request.action == AdminReportActionRequest.ActionType.DEACTIVATE -> {
+                val reportedUser = report.reported!!
 
                 // 탈퇴할 유저와 관련된 모든 신고에서 해당 유저 정보 null로 변경
                 val relatedReports = reportRepository.findByReporterOrReported(reportedUser, reportedUser)
@@ -137,8 +127,8 @@ class AdminReportService(
 
                 // User를 참조하는 다른 자식 테이블 데이터들 우선 삭제
                 matchRepository.deleteAllBySenderOrReceiver(reportedUser, reportedUser)
-                userProfileRepository.deleteByUserId(reportedUser.id!!)
-                userMatchPreferenceRepository.deleteByUserId(reportedUser.id!!)
+                userProfileRepository.deleteByUserId(reportedUser.id)
+                userMatchPreferenceRepository.deleteByUserId(reportedUser.id)
                 notificationRepository.deleteByUser(reportedUser)
 
                 // 현재 처리 중인 신고 건 상태 'RESOLVED'로 변경
@@ -149,6 +139,7 @@ class AdminReportService(
 
                 AdminReportActionResponse(report.id!!, ReportStatus.RESOLVED.name, "신고 대상자 계정이 강제 탈퇴 처리되었습니다.")
             }
+            else -> throw IllegalStateException("지원하지 않는 action 타입입니다: ${request.action}")
         }
     }
 }

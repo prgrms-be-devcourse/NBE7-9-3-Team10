@@ -21,22 +21,21 @@ data class ReportDetailResponse(
         val university: String?
     ) {
         companion object {
+            // if문 죽이고 let이랑 ?: 으로 교체
             fun fromUser(user: User?): UserInfo {
-                return if (user != null) {
+                return user?.let {
                     UserInfo(
-                        userId = user.id,
-                        name = user.name,
-                        email = user.email,
-                        university = user.university
+                        userId = it.id,
+                        name = it.name,
+                        email = it.email,
+                        university = it.university
                     )
-                } else {
-                    UserInfo(
-                        userId = null,
-                        name = "탈퇴한 사용자",
-                        email = "N/A",
-                        university = "N/A"
-                    )
-                }
+                } ?: UserInfo(
+                    userId = null,
+                    name = "탈퇴한 사용자",
+                    email = "N/A",
+                    university = "N/A"
+                )
             }
         }
     }

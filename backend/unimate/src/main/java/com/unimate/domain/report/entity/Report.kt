@@ -15,10 +15,9 @@ class Report(
     @JoinColumn(name = "reportedId", nullable = true)
     var reported: User?,
 
-    @Lob
     var category: String,
 
-    @Enumerated(EnumType.STRING)
+    @Lob
     var content: String,
 
     var reportStatus: ReportStatus = ReportStatus.RECEIVED
