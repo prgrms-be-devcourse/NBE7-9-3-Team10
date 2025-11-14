@@ -119,7 +119,7 @@ public class MatchService {
             LocalDate startDate, LocalDate endDate
     ) {
         return allCandidates.stream()
-                .filter(p -> !p.getUserId().equals(senderId))
+                .filter(p -> !(p.getUserId() == senderId))
                 .filter(p -> p.getGender().equals(senderGender))
                 .filter(p -> p.getMatchingEnabled())
                 .filter(p -> userMatchPreferenceRepository.findByUserId(p.getUserId()).isPresent())
@@ -173,7 +173,7 @@ public class MatchService {
                 // 추가 프로필 정보
                 .sleepTime       (candidate.getSleepTime())
                 .cleaningFrequency(candidate.getCleaningFrequency())
-                .isSmoker        (candidate.getIsSmoker())
+                .isSmoker        (candidate.isSmoker())
                 .startUseDate    (candidate.getStartUseDate() != null ? candidate.getStartUseDate().toString() : null)
                 .endUseDate      (candidate.getEndUseDate() != null ? candidate.getEndUseDate().toString() : null)
                 .build();
@@ -242,9 +242,9 @@ public class MatchService {
                 .mbti(cachedReceiver.getMbti())
                 .gender(cachedReceiver.getGender())
                 .age(matchUtilityService.calculateAge(cachedReceiver.getBirthDate()))
-                .isSmoker(cachedReceiver.getIsSmoker())
-                .isPetAllowed(cachedReceiver.getIsPetAllowed())
-                .isSnoring(cachedReceiver.getIsSnoring())
+                .isSmoker(cachedReceiver.isSmoker())
+                .isPetAllowed(cachedReceiver.isPetAllowed())
+                .isSnoring(cachedReceiver.isSnoring())
                 .sleepTime(cachedReceiver.getSleepTime())
                 .cleaningFrequency(cachedReceiver.getCleaningFrequency())
                 .hygieneLevel(cachedReceiver.getHygieneLevel())

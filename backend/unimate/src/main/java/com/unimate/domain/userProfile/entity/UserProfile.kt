@@ -12,7 +12,7 @@ import java.time.LocalDate
     name = "user_profile",
     uniqueConstraints = [UniqueConstraint(name = "uk_user_profile_user_id", columnNames = ["user_id"])]
 )
-class UserProfile @JvmOverloads constructor(
+class UserProfile (
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(
         name = "user_id",

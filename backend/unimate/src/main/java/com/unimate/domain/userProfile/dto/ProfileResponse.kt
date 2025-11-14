@@ -21,13 +21,13 @@ data class ProfileResponse(
     val endUseDate: LocalDate,
     val matchingEnabled: Boolean,
 
-    val createdAt: LocalDateTime,
-    val updatedAt: LocalDateTime,
+    val createdAt: LocalDateTime?= null,
+    val updatedAt: LocalDateTime?= null,
 ) {
     companion object {
         fun from(entity: UserProfile): ProfileResponse =
             ProfileResponse(
-                id = entity.id,
+                id = requireNotNull(entity.id),
                 sleepTime = entity.sleepTime,
                 isPetAllowed = entity.isPetAllowed,
                 isSmoker = entity.isSmoker,

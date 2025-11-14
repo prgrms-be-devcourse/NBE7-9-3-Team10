@@ -98,23 +98,23 @@ class MatchControllerTest {
     }
 
     private void createUserProfile(User user, boolean enabled) {
-        UserProfile profile = UserProfile.builder()
-                .user(user)
-                .sleepTime(3)  // normal (1=very_late, 2=late, 3=normal, 4=early, 5=very_early)
-                .isPetAllowed(true)
-                .isSmoker(false)
-                .cleaningFrequency(3)  // weekly (1=rarely, 2=monthly, 3=weekly, 4=several_times_weekly, 5=daily)
-                .preferredAgeGap(2)
-                .hygieneLevel(3)
-                .isSnoring(false)
-                .drinkingFrequency(1)
-                .noiseSensitivity(2)
-                .guestFrequency(1)
-                .mbti("INTP")
-                .startUseDate(LocalDate.now())
-                .endUseDate(LocalDate.now().plusMonths(6))
-                .matchingEnabled(enabled)
-                .build();
+        UserProfile profile = new UserProfile(
+                user
+                ,3
+                ,true
+                ,false
+                ,3
+                ,2
+                ,3
+                ,false
+                ,1
+                ,2
+                ,1
+                ,"INTP"
+                ,LocalDate.now()
+                ,LocalDate.now()
+                ,enabled
+        );
         userProfileRepository.save(profile);
     }
 

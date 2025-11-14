@@ -41,7 +41,7 @@ data class CachedUserProfile(
             val user: User = profile.user
 
             return CachedUserProfile(
-                userId = user.id!!,
+                userId = requireNotNull(user.id),
                 name = user.name,
                 email = user.email,
                 gender = user.gender,
