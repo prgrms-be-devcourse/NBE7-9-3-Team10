@@ -64,3 +64,4 @@ build/
 
 # === cursor ===
 .cursor/
+*.mdc
