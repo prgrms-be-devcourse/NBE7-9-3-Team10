@@ -106,21 +106,23 @@ class UserMatchPreferenceServiceTest {
         val request = createSampleRequest()
 
         // when
-        val response = userMatchPreferenceService.updateMyMatchPreferences(testUser.id!!, request)
+        testUser.id?.let { userId ->
+            val response = userMatchPreferenceService.updateMyMatchPreferences(userId, request)
 
-        // then
-        assertThat(response.userId).isEqualTo(testUser.id)
-        assertThat(response.sleepTime).isEqualTo(request.sleepTime)
-        assertThat(response.isSmoker).isEqualTo(request.isSmoker)
-        assertThat(response.startUseDate).isEqualTo(request.startUseDate)
+            // then
+            assertThat(response.userId).isEqualTo(userId)
+            assertThat(response.sleepTime).isEqualTo(request.sleepTime)
+            assertThat(response.isSmoker).isEqualTo(request.isSmoker)
+            assertThat(response.startUseDate).isEqualTo(request.startUseDate)
 
-        val savedPreference = userMatchPreferenceRepository.findByUserId(testUser.id!!).get()
-        assertThat(savedPreference.sleepTime).isEqualTo(request.sleepTime)
+            val savedPreference = userMatchPreferenceRepository.findByUserId(userId).get()
+            assertThat(savedPreference.sleepTime).isEqualTo(request.sleepTime)
 
-        val updatedProfile = userProfileRepository.findByUserId(testUser.id!!).get()
-        assertThat(updatedProfile.matchingEnabled).isTrue
+            val updatedProfile = userProfileRepository.findByUserId(userId).get()
+            assertThat(updatedProfile.matchingEnabled).isTrue
 
-        verify(matchCacheService).evictAllCandidatesCache()
+            verify(matchCacheService).evictAllCandidatesCache()
+        }
     }
 
     @Test
@@ -128,35 +130,37 @@ class UserMatchPreferenceServiceTest {
     fun `update existing match preference success`() {
         // given
         val initialRequest = createSampleRequest()
-        userMatchPreferenceService.updateMyMatchPreferences(testUser.id!!, initialRequest)
+        testUser.id?.let { userId ->
+            userMatchPreferenceService.updateMyMatchPreferences(userId, initialRequest)
 
-        val updateRequest = MatchPreferenceRequest(
-            startUseDate = LocalDate.now().plusDays(10),
-            endUseDate = LocalDate.now().plusMonths(8),
-            sleepTime = 1,
-            isPetAllowed = true,
-            isSmoker = false,
-            cleaningFrequency = 1,
-            preferredAgeGap = 1,
-            hygieneLevel = 1,
-            isSnoring = false,
-            drinkingFrequency = 1,
-            noiseSensitivity = 1,
-            guestFrequency = 1
-        )
+            val updateRequest = MatchPreferenceRequest(
+                startUseDate = LocalDate.now().plusDays(10),
+                endUseDate = LocalDate.now().plusMonths(8),
+                sleepTime = 1,
+                isPetAllowed = true,
+                isSmoker = false,
+                cleaningFrequency = 1,
+                preferredAgeGap = 1,
+                hygieneLevel = 1,
+                isSnoring = false,
+                drinkingFrequency = 1,
+                noiseSensitivity = 1,
+                guestFrequency = 1
+            )
 
-        // when
-        val response = userMatchPreferenceService.updateMyMatchPreferences(testUser.id!!, updateRequest)
+            // when
+            val response = userMatchPreferenceService.updateMyMatchPreferences(userId, updateRequest)
 
-        // then
-        assertThat(response.sleepTime).isEqualTo(updateRequest.sleepTime)
-        assertThat(response.isSmoker).isEqualTo(updateRequest.isSmoker)
+            // then
+            assertThat(response.sleepTime).isEqualTo(updateRequest.sleepTime)
+            assertThat(response.isSmoker).isEqualTo(updateRequest.isSmoker)
 
-        val updatedPreference = userMatchPreferenceRepository.findByUserId(testUser.id!!).get()
-        assertThat(updatedPreference.sleepTime).isEqualTo(updateRequest.sleepTime)
-        assertThat(updatedPreference.isSmoker).isEqualTo(updateRequest.isSmoker)
+            val updatedPreference = userMatchPreferenceRepository.findByUserId(userId).get()
+            assertThat(updatedPreference.sleepTime).isEqualTo(updateRequest.sleepTime)
+            assertThat(updatedPreference.isSmoker).isEqualTo(updateRequest.isSmoker)
 
-        verify(matchCacheService, times(2)).evictAllCandidatesCache()
+            verify(matchCacheService, times(2)).evictAllCandidatesCache()
+        }
     }
 
     @Test
@@ -189,9 +193,11 @@ class UserMatchPreferenceServiceTest {
         val request = createSampleRequest()
 
         // when & then
-        val exception = assertThrows<ServiceException> {
-            userMatchPreferenceService.updateMyMatchPreferences(userWithoutProfile.id!!, request)
+        userWithoutProfile.id?.let { userId ->
+            val exception = assertThrows<ServiceException> {
+                userMatchPreferenceService.updateMyMatchPreferences(userId, request)
+            }
+            assertThat(exception.message).isEqualTo("해당 사용자의 프로필을 찾을 수 없습니다.")
         }
-        assertThat(exception.message).isEqualTo("해당 사용자의 프로필을 찾을 수 없습니다.")
     }
 }

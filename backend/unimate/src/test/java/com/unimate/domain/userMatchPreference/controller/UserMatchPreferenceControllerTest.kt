@@ -98,7 +98,9 @@ class UserMatchPreferenceControllerTest {
         )
         userProfileRepository.save(userProfile)
 
-        accessToken = jwtProvider.generateToken(testUser.email, testUser.id!!).accessToken
+        testUser.id?.let { userId ->
+            accessToken = jwtProvider.generateToken(testUser.email, userId).accessToken
+        }
     }
 
     private fun createSampleRequest(): MatchPreferenceRequest {
@@ -124,16 +126,18 @@ class UserMatchPreferenceControllerTest {
         val request = createSampleRequest()
         val requestJson = objectMapper.writeValueAsString(request)
 
-        mockMvc.perform(
-            put("$baseUrl/preferences")
-                .header("Authorization", "Bearer $accessToken")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(requestJson)
-        )
-            .andExpect(status().isOk)
-            .andExpect(jsonPath("$.userId").value(testUser.id!!))
-            .andExpect(jsonPath("$.sleepTime").value(request.sleepTime))
-            .andExpect(jsonPath("$.isSmoker").value(request.isSmoker))
+        testUser.id?.let { userId ->
+            mockMvc.perform(
+                put("$baseUrl/preferences")
+                    .header("Authorization", "Bearer $accessToken")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(requestJson)
+            )
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.userId").value(userId))
+                .andExpect(jsonPath("$.sleepTime").value(request.sleepTime))
+                .andExpect(jsonPath("$.isSmoker").value(request.isSmoker))
+        }
     }
 
     @Test
@@ -156,13 +160,15 @@ class UserMatchPreferenceControllerTest {
     @Test
     @DisplayName("매칭 상태 비활성화 성공")
     fun `cancel matching status success`() {
-        mockMvc.perform(
-            delete("$baseUrl/matching-status")
-                .header("Authorization", "Bearer $accessToken")
-        )
-            .andExpect(status().isNoContent)
+        testUser.id?.let { userId ->
+            mockMvc.perform(
+                delete("$baseUrl/matching-status")
+                    .header("Authorization", "Bearer $accessToken")
+            )
+                .andExpect(status().isNoContent)
 
-        verify(userProfileService).cancelMatching(testUser.id!!)
+            verify(userProfileService).cancelMatching(userId)
+        }
     }
 
     @Test

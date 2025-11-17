@@ -27,7 +27,7 @@ data class MatchPreferenceResponse(
     companion object {
         fun fromEntity(userMatchPreference: UserMatchPreference): MatchPreferenceResponse {
             return MatchPreferenceResponse(
-                userId = userMatchPreference.user.id!!,
+                userId = requireNotNull(userMatchPreference.user.id) { "유저 ID는 null일 수 없습니다." },
                 startUseDate = userMatchPreference.startUseDate,
                 endUseDate = userMatchPreference.endUseDate,
                 sleepTime = userMatchPreference.sleepTime,
@@ -40,7 +40,7 @@ data class MatchPreferenceResponse(
                 drinkingFrequency = userMatchPreference.drinkingFrequency,
                 noiseSensitivity = userMatchPreference.noiseSensitivity,
                 guestFrequency = userMatchPreference.guestFrequency,
-                updatedAt = userMatchPreference.updatedAt!!
+                updatedAt = requireNotNull(userMatchPreference.updatedAt) { "updatedAt은 null일 수 없습니다." }
             )
         }
     }
