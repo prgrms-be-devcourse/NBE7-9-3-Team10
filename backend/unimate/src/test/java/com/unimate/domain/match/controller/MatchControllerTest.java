@@ -1,9 +1,11 @@
 package com.unimate.domain.match.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.unimate.domain.match.dto.LikeRequest;
 import com.unimate.domain.match.dto.MatchConfirmRequest;
 import com.unimate.domain.match.entity.Match;
 import com.unimate.domain.match.entity.MatchStatus;
+import com.unimate.domain.match.entity.MatchType;
 import com.unimate.domain.match.repository.MatchRepository;
 import com.unimate.domain.user.user.dto.UserLoginRequest;
 import com.unimate.domain.user.user.entity.Gender;
@@ -206,6 +208,45 @@ class MatchControllerTest {
                 .andExpect(jsonPath("$.name").value(receiver.getName()))
                 .andExpect(jsonPath("$.email").value(receiver.getEmail()))
                 .andExpect(jsonPath("$.university").value(receiver.getUniversity()));
+    }
+
+    @Test
+    @DisplayName("좋아요 보내기 성공")
+    void sendLike_success() throws Exception {
+        LikeRequest req = new LikeRequest(receiver.getId());
+
+        mockMvc.perform(
+                        post(baseUrl + "/likes")
+                                .header("Authorization", bearer(senderToken))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(req))
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.isMatched").value(false));
+
+        assertThat(matchRepository.findBySenderIdAndReceiverId(sender.getId(), receiver.getId())).isPresent();
+    }
+
+    @Test
+    @DisplayName("상호 좋아요 보내기 성공 (REQUEST로 업그레이드)")
+    void sendLike_mutual_success() throws Exception {
+        // 먼저 receiver가 sender에게 좋아요를 보낸 상태
+        matchRepository.save(Match.createLike(receiver, sender, BigDecimal.valueOf(0.8)));
+
+        // sender가 receiver에게 좋아요를 보냄
+        LikeRequest req = new LikeRequest(receiver.getId());
+        mockMvc.perform(
+                        post(baseUrl + "/likes")
+                                .header("Authorization", bearer(senderToken))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(req))
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.isMatched").value(true));
+
+        // 기존 Match가 REQUEST 타입으로 변경되었는지 확인
+        Match match = matchRepository.findMatchBetweenUsers(sender.getId(), receiver.getId()).orElseThrow();
+        assertThat(match.getMatchType()).isEqualTo(MatchType.REQUEST);
     }
 
     @Test
