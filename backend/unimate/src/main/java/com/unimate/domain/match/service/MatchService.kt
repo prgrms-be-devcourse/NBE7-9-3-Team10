@@ -256,7 +256,7 @@ class MatchService(
 
         val senderId = sender.id ?: throw internalServerError("송신자 ID가 null입니다.")
 
-        val senderPreference = userMatchPreferenceRepository.findByUserId(sender.id!!)
+        val senderPreference = userMatchPreferenceRepository.findByUserId(senderId)
             .orElseThrow { notFound("사용자의 매칭 선호도를 찾을 수 없습니다. 먼저 선호도를 등록해주세요.") }
 
         validateUserMatchPreference(receiverId)
@@ -309,7 +309,7 @@ class MatchService(
      */
     @Transactional
     fun confirmMatch(matchId: Long, userId: Long): Match {
-        val match = matchRepository.findById(matchId)
+        val match = matchRepository.findByIdWithUsers(matchId)
             .orElseThrow { notFound("매칭을 찾을 수 없습니다.") }
 
         val senderId = match.sender.id ?: throw internalServerError("송신자 ID가 null입니다.")
@@ -342,7 +342,7 @@ class MatchService(
      */
     @Transactional
     fun rejectMatch(matchId: Long, userId: Long): Match {
-        val match = matchRepository.findById(matchId)
+        val match = matchRepository.findByIdWithUsers(matchId)
             .orElseThrow { notFound("매칭을 찾을 수 없습니다.") }
 
         val senderId = match.sender.id ?: throw internalServerError("송신자 ID가 null입니다.")
