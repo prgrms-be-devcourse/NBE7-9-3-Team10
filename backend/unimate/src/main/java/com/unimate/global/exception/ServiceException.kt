@@ -35,6 +35,11 @@ class ServiceException(
         fun forbidden(message: String): ServiceException {
             return ServiceException(HttpStatus.FORBIDDEN, "FORBIDDEN", message)
         }
+
+        @JvmStatic
+        fun internalServerError(message: String): ServiceException {
+            return ServiceException(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR", message)
+        }
     }
 }
 
