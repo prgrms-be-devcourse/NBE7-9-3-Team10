@@ -130,21 +130,21 @@ class MatchControllerTest {
     }
 
     private void createUserPreference(User user) {
-        UserMatchPreference pref = UserMatchPreference.builder()
-                .user(user)
-                .sleepTime(3)  // normal
-                .isPetAllowed(true)
-                .isSmoker(false)
-                .cleaningFrequency(3)  // weekly
-                .preferredAgeGap(2)
-                .hygieneLevel(3)
-                .isSnoring(false)
-                .drinkingFrequency(1)
-                .noiseSensitivity(2)
-                .guestFrequency(1)
-                .startUseDate(LocalDate.now())
-                .endUseDate(LocalDate.now().plusMonths(6))
-                .build();
+        UserMatchPreference pref = new UserMatchPreference(
+                user,
+                LocalDate.now(),
+                LocalDate.now().plusMonths(6),
+                3,  // sleepTime
+                true, // isPetAllowed
+                false, // isSmoker
+                3,  // cleaningFrequency
+                2, // preferredAgeGap
+                3, // hygieneLevel
+                false, // isSnoring
+                1, // drinkingFrequency
+                2, // noiseSensitivity
+                1 // guestFrequency
+        );
         userMatchPreferenceRepository.save(pref);
     }
 
