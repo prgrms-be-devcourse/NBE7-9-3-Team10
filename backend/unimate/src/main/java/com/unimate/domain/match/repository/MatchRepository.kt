@@ -23,6 +23,15 @@ interface MatchRepository : JpaRepository<Match, Long> {
             "WHERE m.sender.id = :userId OR m.receiver.id = :userId")
     fun findBySenderIdOrReceiverWithUsers(@Param("userId") userId: Long): List<Match>
 
+    // 단일 매칭 조회
+    @Query("""
+        SELECT m FROM Match m
+        LEFT JOIN FETCH m.sender
+        LEFT JOIN FETCH m.receiver
+        WHERE m.id = :matchId
+    """)
+    fun findByIdWithUsers(@Param("matchId") matchId: Long): Optional<Match>
+
     // 보낸 사람과 받는 사람 기준으로 좋아요 기록 찾기
     fun findBySenderIdAndReceiverIdAndMatchType(
         senderId: Long,
