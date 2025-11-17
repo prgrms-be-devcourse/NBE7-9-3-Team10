@@ -2,6 +2,7 @@ package com.unimate.domain.report.dto
 
 import com.unimate.domain.report.entity.Report
 import com.unimate.domain.user.user.entity.User
+import com.unimate.global.exception.ServiceException
 import java.time.LocalDateTime
 
 data class ReportDetailResponse(
@@ -43,7 +44,7 @@ data class ReportDetailResponse(
     companion object {
         fun fromEntity(report: Report): ReportDetailResponse {
             return ReportDetailResponse(
-                reportId = report.id!!,
+                reportId = report.id ?: throw ServiceException.badRequest("신고 ID는 null 일 수 없습니다."),
                 reporterInfo = UserInfo.fromUser(report.reporter),
                 reportedInfo = UserInfo.fromUser(report.reported),
                 category = report.category,

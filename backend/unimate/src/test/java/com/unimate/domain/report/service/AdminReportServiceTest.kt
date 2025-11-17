@@ -41,8 +41,8 @@ import java.util.Optional
 class AdminReportServiceTest {
 
     // BaseEntity의 id 값을 강제로 설정하기 위한 Reflection Helper
-    fun <T> T.setId(idValue: Long) {
-        val idField: Field = this!!::class.java.superclass.getDeclaredField("id")
+    fun <T: Any> T.setId(idValue: Long) {
+        val idField: Field = this::class.java.superclass.getDeclaredField("id")
         idField.isAccessible = true
         idField.set(this, idValue)
     }
@@ -88,32 +88,38 @@ class AdminReportServiceTest {
         val pageable = PageRequest.of(0, 10)
         val reportPage = PageImpl(listOf(testReport), pageable, 1)
 
-        whenever(adminRepository.findById(admin.id!!)).thenReturn(Optional.of(admin))
-        whenever(reportRepository.findAll(anyOrNull<Specification<Report>>(), any<Pageable>())).thenReturn(reportPage)
+        admin.id?.let { adminId ->
+            whenever(adminRepository.findById(adminId)).thenReturn(Optional.of(admin))
+            whenever(reportRepository.findAll(anyOrNull<Specification<Report>>(), any<Pageable>())).thenReturn(reportPage)
 
-        // when
-        val result = adminReportService.getReports(admin.id!!, pageable, null, null)
+            // when
+            val result = adminReportService.getReports(adminId, pageable, null, null)
 
-        // then
-        assertThat(result.content).hasSize(1)
-        assertThat(result.content[0].reportId).isEqualTo(testReport.id)
-        verify(adminRepository).findById(admin.id!!)
-        verify(reportRepository).findAll(anyOrNull<Specification<Report>>(), any<Pageable>())
+            // then
+            assertThat(result.content).hasSize(1)
+            assertThat(result.content[0].reportId).isEqualTo(testReport.id)
+            verify(adminRepository).findById(adminId)
+            verify(reportRepository).findAll(anyOrNull<Specification<Report>>(), any<Pageable>())
+        }
     }
 
     @Test
     @DisplayName("신고 상세 조회 성공")
     fun t2_getReportDetailSuccess() {
         // given
-        whenever(adminRepository.findById(admin.id!!)).thenReturn(Optional.of(admin))
-        whenever(reportRepository.findById(testReport.id!!)).thenReturn(Optional.of(testReport))
+        admin.id?.let { adminId ->
+            testReport.id?.let { reportId ->
+                whenever(adminRepository.findById(adminId)).thenReturn(Optional.of(admin))
+                whenever(reportRepository.findById(reportId)).thenReturn(Optional.of(testReport))
 
-        // when
-        val result = adminReportService.getReportDetail(admin.id!!, testReport.id!!)
+                // when
+                val result = adminReportService.getReportDetail(adminId, reportId)
 
-        // then
-        assertThat(result.reportId).isEqualTo(testReport.id)
-        assertThat(result.reporterInfo.email).isEqualTo(reporter.email)
+                // then
+                assertThat(result.reportId).isEqualTo(testReport.id)
+                assertThat(result.reporterInfo.email).isEqualTo(reporter.email)
+            }
+        }
     }
 
     @Test
@@ -121,15 +127,19 @@ class AdminReportServiceTest {
     fun t3_processReportActionReject() {
         // given
         val request = AdminReportActionRequest(AdminReportActionRequest.ActionType.REJECT)
-        whenever(adminRepository.findById(admin.id!!)).thenReturn(Optional.of(admin))
-        whenever(reportRepository.findById(testReport.id!!)).thenReturn(Optional.of(testReport))
+        admin.id?.let { adminId ->
+            testReport.id?.let { reportId ->
+                whenever(adminRepository.findById(adminId)).thenReturn(Optional.of(admin))
+                whenever(reportRepository.findById(reportId)).thenReturn(Optional.of(testReport))
 
-        // when
-        val result = adminReportService.processReportAction(admin.id!!, testReport.id!!, request)
+                // when
+                val result = adminReportService.processReportAction(adminId, reportId, request)
 
-        // then
-        assertThat(result.newReportStatus).isEqualTo("REJECTED")
-        assertThat(testReport.reportStatus).isEqualTo(ReportStatus.REJECTED)
+                // then
+                assertThat(result.newReportStatus).isEqualTo("REJECTED")
+                assertThat(testReport.reportStatus).isEqualTo(ReportStatus.REJECTED)
+            }
+        }
     }
 
     @Test
@@ -137,31 +147,39 @@ class AdminReportServiceTest {
     fun t4_processReportActionDeactivate() {
         // given
         val request = AdminReportActionRequest(AdminReportActionRequest.ActionType.DEACTIVATE)
-        whenever(adminRepository.findById(admin.id!!)).thenReturn(Optional.of(admin))
-        whenever(reportRepository.findById(testReport.id!!)).thenReturn(Optional.of(testReport))
-        whenever(reportRepository.findByReporterOrReported(reported, reported)).thenReturn(listOf(testReport))
+        admin.id?.let { adminId ->
+            testReport.id?.let { reportId ->
+                whenever(adminRepository.findById(adminId)).thenReturn(Optional.of(admin))
+                whenever(reportRepository.findById(reportId)).thenReturn(Optional.of(testReport))
+                whenever(reportRepository.findByReporterOrReported(reported, reported)).thenReturn(listOf(testReport))
 
-        // when
-        val result = adminReportService.processReportAction(admin.id!!, testReport.id!!, request)
+                // when
+                val result = adminReportService.processReportAction(adminId, reportId, request)
 
-        // then
-        assertThat(result.newReportStatus).isEqualTo("RESOLVED")
-        assertThat(testReport.reportStatus).isEqualTo(ReportStatus.RESOLVED)
-        verify(userRepository, times(1)).delete(reported)
-        verify(matchRepository, times(1)).deleteAllBySenderOrReceiver(reported, reported)
-        verify(userProfileRepository, times(1)).deleteByUserId(reported.id!!)
+                // then
+                assertThat(result.newReportStatus).isEqualTo("RESOLVED")
+                assertThat(testReport.reportStatus).isEqualTo(ReportStatus.RESOLVED)
+                verify(userRepository, times(1)).delete(reported)
+                verify(matchRepository, times(1)).deleteAllBySenderOrReceiver(reported, reported)
+                reported.id?.let {
+                    verify(userProfileRepository, times(1)).deleteByUserId(it)
+                }
+            }
+        }
     }
 
     @Test
     @DisplayName("관리자가 아닌 경우 예외 발생")
     fun t5_checkIsAdminFail() {
         // given
-        whenever(adminRepository.findById(admin.id!!)).thenReturn(Optional.empty())
+        admin.id?.let { adminId ->
+            whenever(adminRepository.findById(adminId)).thenReturn(Optional.empty())
 
-        // when & then
-        val exception = assertThrows<ServiceException> {
-            adminReportService.getReports(admin.id!!, PageRequest.of(0, 10), null, null)
+            // when & then
+            val exception = assertThrows<ServiceException> {
+                adminReportService.getReports(adminId, PageRequest.of(0, 10), null, null)
+            }
+            assertThat(exception.message).isEqualTo("관리자 권한이 필요합니다.")
         }
-        assertThat(exception.message).isEqualTo("관리자 권한이 필요합니다.")
     }
 }

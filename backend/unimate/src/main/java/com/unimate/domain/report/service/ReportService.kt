@@ -6,6 +6,7 @@ import com.unimate.domain.report.entity.Report
 import com.unimate.domain.report.entity.ReportStatus
 import com.unimate.domain.report.repository.ReportRepository
 import com.unimate.domain.user.user.repository.UserRepository
+import com.unimate.global.exception.ServiceException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -38,7 +39,7 @@ class ReportService(
         val saved = reportRepository.save(report)
 
         return ReportResponse(
-            reportId = saved.id!!,
+            reportId = saved.id ?: throw ServiceException.badRequest("저장된 신고 ID가 null일 수 없습니다."),
             reporterEmail = reporterEmail,
             reportedEmail = rq.reportedEmail,
             category = saved.category,

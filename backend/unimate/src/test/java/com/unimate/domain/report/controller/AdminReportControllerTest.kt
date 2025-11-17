@@ -136,65 +136,75 @@ class AdminReportControllerTest {
     @Test
     @DisplayName("신고 목록 조회 성공")
     fun getReports_success() {
-        mockMvc.perform(
-            get(baseUrl)
-                .header("Authorization", bearer(adminToken))
-        )
-            .andExpect(status().isOk)
-            .andExpect(jsonPath("$.content").isArray)
-            .andExpect(jsonPath("$.content.length()").value(1))
-            .andExpect(jsonPath("$.content[0].reportId").value(testReport.id!!))
+        testReport.id?.let {
+            mockMvc.perform(
+                get(baseUrl)
+                    .header("Authorization", bearer(adminToken))
+            )
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.content").isArray)
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].reportId").value(it))
+        }
     }
 
     @Test
     @DisplayName("신고 상세 조회 성공")
     fun getReportDetail_success() {
-        mockMvc.perform(
-            get("$baseUrl/${testReport.id}")
-                .header("Authorization", bearer(adminToken))
-        )
-            .andExpect(status().isOk)
-            .andExpect(jsonPath("$.reportId").value(testReport.id!!))
-            .andExpect(jsonPath("$.reporterInfo.email").value(reporter.email))
-            .andExpect(jsonPath("$.reportedInfo.email").value(reported.email))
+        testReport.id?.let {
+            mockMvc.perform(
+                get("$baseUrl/$it")
+                    .header("Authorization", bearer(adminToken))
+            )
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.reportId").value(it))
+                .andExpect(jsonPath("$.reporterInfo.email").value(reporter.email))
+                .andExpect(jsonPath("$.reportedInfo.email").value(reported.email))
+        }
     }
 
     @Test
     @DisplayName("신고 처리 (REJECT) 성공")
     fun handleReportAction_reject_success() {
-        val request = AdminReportActionRequest(AdminReportActionRequest.ActionType.REJECT)
+        testReport.id?.let { reportId ->
+            val request = AdminReportActionRequest(AdminReportActionRequest.ActionType.REJECT)
 
-        mockMvc.perform(
-            patch("$baseUrl/${testReport.id}/action")
-                .header("Authorization", bearer(adminToken))
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))
-        )
-            .andExpect(status().isOk)
-            .andExpect(jsonPath("$.newReportStatus").value("REJECTED"))
+            mockMvc.perform(
+                patch("$baseUrl/$reportId/action")
+                    .header("Authorization", bearer(adminToken))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+            )
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.newReportStatus").value("REJECTED"))
 
-        val updatedReport = reportRepository.findById(testReport.id!!).get()
-        assertThat(updatedReport.reportStatus).isEqualTo(ReportStatus.REJECTED)
+            val updatedReport = reportRepository.findById(reportId).orElseThrow()
+            assertThat(updatedReport.reportStatus).isEqualTo(ReportStatus.REJECTED)
+        }
     }
 
     @Test
     @DisplayName("신고 처리 (DEACTIVATE) 성공 - 피신고자 계정 삭제")
     fun handleReportAction_deactivate_success() {
-        val request = AdminReportActionRequest(AdminReportActionRequest.ActionType.DEACTIVATE)
+        testReport.id?.let { reportId ->
+            val request = AdminReportActionRequest(AdminReportActionRequest.ActionType.DEACTIVATE)
 
-        mockMvc.perform(
-            patch("$baseUrl/${testReport.id}/action")
-                .header("Authorization", bearer(adminToken))
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))
-        )
-            .andExpect(status().isOk)
-            .andExpect(jsonPath("$.newReportStatus").value("RESOLVED"))
-            .andExpect(jsonPath("$.message").value("신고 대상자 계정이 강제 탈퇴 처리되었습니다."))
+            mockMvc.perform(
+                patch("$baseUrl/$reportId/action")
+                    .header("Authorization", bearer(adminToken))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request))
+            )
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.newReportStatus").value("RESOLVED"))
+                .andExpect(jsonPath("$.message").value("신고 대상자 계정이 강제 탈퇴 처리되었습니다."))
 
-        val updatedReport = reportRepository.findById(testReport.id!!).get()
-        assertThat(updatedReport.reportStatus).isEqualTo(ReportStatus.RESOLVED)
-        assertThat(userRepository.findById(reported.id!!)).isEmpty
+            val updatedReport = reportRepository.findById(reportId).orElseThrow()
+            assertThat(updatedReport.reportStatus).isEqualTo(ReportStatus.RESOLVED)
+            reported.id?.let {
+                assertThat(userRepository.findById(it)).isEmpty
+            }
+        }
     }
 
     @Test

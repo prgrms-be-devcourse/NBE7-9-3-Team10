@@ -57,7 +57,7 @@ class AdminReportService(
         // 조회된 Report 엔티티 페이지를 ReportSummary dto 페이지로 변환
         val dtoPage: Page<ReportSummary> = reportPage.map { report ->
             ReportSummary(
-                reportId = report.id!!,
+                reportId = report.id ?: throw ServiceException.badRequest("신고 ID가 존재하지 않습니다."),
                 reporterName = report.reporter?.name ?: "탈퇴한 사용자",
                 reportedName = report.reported?.name ?: "탈퇴한 사용자",
                 category = report.category,
@@ -103,16 +103,16 @@ class AdminReportService(
             // 피신고자가 이미 탈퇴한 경우
             report.reported == null -> {
                 report.updateStatus(ReportStatus.RESOLVED)
-                AdminReportActionResponse(report.id!!, ReportStatus.RESOLVED.name, "신고 대상자를 찾을 수 없어 신고만 처리되었습니다.")
+                AdminReportActionResponse(report.id ?: throw ServiceException.badRequest("신고 ID가 존재하지 않습니다."), ReportStatus.RESOLVED.name, "신고 대상자를 찾을 수 없어 신고만 처리되었습니다.")
             }
             // 신고 'REJECTED' 처리
             request.action == AdminReportActionRequest.ActionType.REJECT -> {
                 report.updateStatus(ReportStatus.REJECTED)
-                AdminReportActionResponse(report.id!!, ReportStatus.REJECTED.name, "신고가 반려 처리되었습니다.")
+                AdminReportActionResponse(report.id ?: throw ServiceException.badRequest("신고 ID가 존재하지 않습니다."), ReportStatus.REJECTED.name, "신고가 반려 처리되었습니다.")
             }
             // 피신고자 '강제 탈퇴'처리
             request.action == AdminReportActionRequest.ActionType.DEACTIVATE -> {
-                val reportedUser = report.reported!!
+                val reportedUser = report.reported ?: throw ServiceException.badRequest("피신고자가 존재하지 않습니다.")
 
                 // 탈퇴할 유저와 관련된 모든 신고에서 해당 유저 정보 null로 변경
                 val relatedReports = reportRepository.findByReporterOrReported(reportedUser, reportedUser)
@@ -127,8 +127,8 @@ class AdminReportService(
 
                 // User를 참조하는 다른 자식 테이블 데이터들 우선 삭제
                 matchRepository.deleteAllBySenderOrReceiver(reportedUser, reportedUser)
-                userProfileRepository.deleteByUserId(reportedUser.id!!)
-                userMatchPreferenceRepository.deleteByUserId(reportedUser.id!!)
+                userProfileRepository.deleteByUserId(reportedUser.id ?: throw ServiceException.badRequest("피신고자 ID가 존재하지 않습니다."))
+                userMatchPreferenceRepository.deleteByUserId(reportedUser.id ?: throw ServiceException.badRequest("피신고자 ID가 존재하지 않습니다."))
                 notificationRepository.deleteByUser(reportedUser)
 
                 // 현재 처리 중인 신고 건 상태 'RESOLVED'로 변경
@@ -137,7 +137,7 @@ class AdminReportService(
                 // 모든 참조 정리 후, 최종적으로 유저 삭제
                 userRepository.delete(reportedUser)
 
-                AdminReportActionResponse(report.id!!, ReportStatus.RESOLVED.name, "신고 대상자 계정이 강제 탈퇴 처리되었습니다.")
+                AdminReportActionResponse(report.id ?: throw ServiceException.badRequest("신고 ID가 존재하지 않습니다."), ReportStatus.RESOLVED.name, "신고 대상자 계정이 강제 탈퇴 처리되었습니다.")
             }
             else -> throw IllegalStateException("지원하지 않는 action 타입입니다: ${request.action}")
         }
