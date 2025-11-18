@@ -400,7 +400,7 @@ class MatchService(
     fun getMatchResults(userId: Long): MatchResultResponse {
         val results = matchRepository.findBySenderIdOrReceiverWithUsers(userId)
             .filter { it.matchStatus == MatchStatus.ACCEPTED }
-            .map { match -> matchUtilityService.toMatchResultItem(match, userId) }
+            .map { match -> matchUtilityService.toMatchResultItem(match) }
 
         return MatchResultResponse(results)
     }

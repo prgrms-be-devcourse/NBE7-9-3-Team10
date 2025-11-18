@@ -99,7 +99,7 @@ class MatchUtilityService {
     /**
      * Match를 MatchResultItem으로 변환
      */
-    fun toMatchResultItem(match: Match, currentUserId: Long): MatchResultItem {
+    fun toMatchResultItem(match: Match): MatchResultItem {
         val matchId = match.id ?: throw ServiceException.internalServerError("매칭 ID가 null입니다.")
         val senderId = match.sender.id ?: throw ServiceException.internalServerError("송신자 ID가 null입니다.")
         val receiverId = match.receiver.id ?: throw ServiceException.internalServerError("수신자 ID가 null입니다.")
