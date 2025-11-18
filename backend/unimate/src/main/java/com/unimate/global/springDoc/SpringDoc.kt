@@ -32,18 +32,16 @@ import org.springframework.context.annotation.Configuration
 )
 class SpringDoc {
     @Bean
-    fun groupApiV1(): GroupedOpenApi? {
-        return GroupedOpenApi.builder()
+    fun groupApiV1(): GroupedOpenApi =
+        GroupedOpenApi.builder()
             .group("apiV1")
             .pathsToMatch("/api/v1/**")
             .build()
-    }
 
     @Bean
-    fun groupController(): GroupedOpenApi? {
-        return GroupedOpenApi.builder()
+    fun groupController(): GroupedOpenApi =
+        GroupedOpenApi.builder()
             .group("home")
             .pathsToExclude("/api/**")
             .build()
-    }
 }
