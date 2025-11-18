@@ -39,6 +39,11 @@ class MatchUtilityServiceTest {
         userRepository.deleteAll()
     }
 
+    private fun User.getIdOrThrow(): Long = id ?: error("User ID가 null입니다. 저장 후 ID가 생성되어야 합니다.")
+
+    private fun Match.getIdOrThrow(): Long = id ?: error("Match ID가 null입니다. 저장 후 ID가 생성되어야 합니다.")
+
+
     @Test
     @DisplayName("나이 계산 - 생일이 지난 경우")
     fun `calculateAge should return correct age when birthday has passed`() {
@@ -152,8 +157,8 @@ class MatchUtilityServiceTest {
         // given
         val sender = User("송신자", "sender@test.ac.kr", "pw", Gender.MALE, LocalDate.of(1998, 1, 1), "서울대학교")
         val receiver = User("수신자", "receiver@test.ac.kr", "pw", Gender.MALE, LocalDate.of(1999, 1, 1), "서울대학교")
-        sender.verifyStudent()
-        receiver.verifyStudent()
+        sender.studentVerified = true
+        receiver.studentVerified = true
         val savedSender = userRepository.save(sender)
         val savedReceiver = userRepository.save(receiver)
 
@@ -163,21 +168,21 @@ class MatchUtilityServiceTest {
         match.matchStatus = MatchStatus.PENDING
         val savedMatch = matchRepository.save(match)
 
-        val senderId = savedSender.id ?: error("송신자 ID가 null입니다.")
+        val senderId = savedSender.getIdOrThrow()
 
         // when
         val statusItem = matchUtilityService.toMatchStatusItem(savedMatch, senderId)
 
         // then
-        assertThat(statusItem.id).isEqualTo(savedMatch.id)
+        assertThat(statusItem.id).isEqualTo(savedMatch.getIdOrThrow())
         assertThat(statusItem.senderId).isEqualTo(senderId)
-        assertThat(statusItem.receiverId).isEqualTo(savedReceiver.id)
+        assertThat(statusItem.receiverId).isEqualTo(savedReceiver.getIdOrThrow())
         assertThat(statusItem.matchType).isEqualTo(MatchType.REQUEST)
         assertThat(statusItem.matchStatus).isEqualTo(MatchStatus.PENDING)
         assertThat(statusItem.myResponse).isEqualTo(MatchStatus.ACCEPTED)
         assertThat(statusItem.partnerResponse).isEqualTo(MatchStatus.PENDING)
         assertThat(statusItem.waitingForPartner).isTrue
-        assertThat(statusItem.partner.id).isEqualTo(savedReceiver.id)
+        assertThat(statusItem.partner.id).isEqualTo(savedReceiver.getIdOrThrow())
         assertThat(statusItem.partner.name).isEqualTo("수신자")
     }
 
@@ -187,8 +192,8 @@ class MatchUtilityServiceTest {
         // given
         val sender = User("송신자", "sender@test.ac.kr", "pw", Gender.MALE, LocalDate.of(1998, 1, 1), "서울대학교")
         val receiver = User("수신자", "receiver@test.ac.kr", "pw", Gender.MALE, LocalDate.of(1999, 1, 1), "서울대학교")
-        sender.verifyStudent()
-        receiver.verifyStudent()
+        sender.studentVerified = true
+        receiver.studentVerified = true
         val savedSender = userRepository.save(sender)
         val savedReceiver = userRepository.save(receiver)
 
@@ -198,19 +203,19 @@ class MatchUtilityServiceTest {
         match.matchStatus = MatchStatus.PENDING
         val savedMatch = matchRepository.save(match)
 
-        val receiverId = savedReceiver.id ?: error("수신자 ID가 null입니다.")
+        val receiverId = savedReceiver.getIdOrThrow()
 
         // when
         val statusItem = matchUtilityService.toMatchStatusItem(savedMatch, receiverId)
 
         // then
-        assertThat(statusItem.id).isEqualTo(savedMatch.id)
-        assertThat(statusItem.senderId).isEqualTo(savedSender.id)
+        assertThat(statusItem.id).isEqualTo(savedMatch.getIdOrThrow())
+        assertThat(statusItem.senderId).isEqualTo(savedSender.getIdOrThrow())
         assertThat(statusItem.receiverId).isEqualTo(receiverId)
         assertThat(statusItem.myResponse).isEqualTo(MatchStatus.ACCEPTED)
         assertThat(statusItem.partnerResponse).isEqualTo(MatchStatus.PENDING)
         assertThat(statusItem.waitingForPartner).isTrue
-        assertThat(statusItem.partner.id).isEqualTo(savedSender.id)
+        assertThat(statusItem.partner.id).isEqualTo(savedSender.getIdOrThrow())
         assertThat(statusItem.partner.name).isEqualTo("송신자")
     }
 
@@ -220,8 +225,8 @@ class MatchUtilityServiceTest {
         // given
         val sender = User("송신자", "sender@test.ac.kr", "pw", Gender.MALE, LocalDate.of(1998, 1, 1), "서울대학교")
         val receiver = User("수신자", "receiver@test.ac.kr", "pw", Gender.MALE, LocalDate.of(1999, 1, 1), "서울대학교")
-        sender.verifyStudent()
-        receiver.verifyStudent()
+        sender.studentVerified = true
+        receiver.studentVerified = true
         val savedSender = userRepository.save(sender)
         val savedReceiver = userRepository.save(receiver)
 
@@ -234,10 +239,10 @@ class MatchUtilityServiceTest {
         val resultItem = matchUtilityService.toMatchResultItem(savedMatch)
 
         // then
-        assertThat(resultItem.id).isEqualTo(savedMatch.id)
-        assertThat(resultItem.senderId).isEqualTo(savedSender.id)
+        assertThat(resultItem.id).isEqualTo(savedMatch.getIdOrThrow())
+        assertThat(resultItem.senderId).isEqualTo(savedSender.getIdOrThrow())
         assertThat(resultItem.senderName).isEqualTo("송신자")
-        assertThat(resultItem.receiverId).isEqualTo(savedReceiver.id)
+        assertThat(resultItem.receiverId).isEqualTo(savedReceiver.getIdOrThrow())
         assertThat(resultItem.receiverName).isEqualTo("수신자")
         assertThat(resultItem.matchType).isEqualTo(MatchType.REQUEST)
         assertThat(resultItem.matchStatus).isEqualTo(MatchStatus.ACCEPTED)

@@ -41,7 +41,7 @@ import java.time.LocalDate
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
 @Transactional
-internal class MatchControllerTest {
+ class MatchControllerTest {
     @Autowired private lateinit var mockMvc: MockMvc
     @Autowired private lateinit var objectMapper: ObjectMapper
     @Autowired private lateinit var passwordEncoder: BCryptPasswordEncoder
@@ -82,15 +82,11 @@ internal class MatchControllerTest {
         createUserPreference(receiver)
         createUserPreference(thirdUser)
 
-        val senderId = sender.id ?: error("송신자 ID가 null입니다. 저장 후 ID가 생성되어야 합니다.")
-        val receiverId = receiver.id ?: error("수신자 ID가 null입니다. 저장 후 ID가 생성되어야 합니다.")
-        val thirdUserId = thirdUser.id ?: error("제삼자 ID가 null입니다. 저장 후 ID가 생성되어야 합니다.")
-
         // 캐시 무효화 후 재로딩 (테스트 데이터가 캐시에 반영되도록)
         // 개별 프로필 캐시도 무효화 (getUserProfileById에서 사용)
-        matchCacheService.evictUserProfileCache(senderId)
-        matchCacheService.evictUserProfileCache(receiverId)
-        matchCacheService.evictUserProfileCache(thirdUserId)
+        evictUserCache(sender)
+        evictUserCache(receiver)
+        evictUserCache(thirdUser)
         // 전체 후보 캐시도 무효화
         matchCacheService.evictAllCandidatesCache()
 
@@ -108,7 +104,7 @@ internal class MatchControllerTest {
             LocalDate.now().minusYears(27),  // 26-28세 범위에 맞추기 위해 27세로 설정
             "서울대학교"
         )
-        u.verifyStudent()
+        u.studentVerified = true
         return userRepository.save(u)
     }
 
@@ -168,8 +164,14 @@ internal class MatchControllerTest {
         return objectMapper.readTree(json).path("accessToken").asText()
     }
 
-    private fun bearer(token: String): String {
-        return "Bearer $token"
+    private fun bearer(token: String): String = "Bearer $token"
+
+    private fun User.getIdOrThrow(): Long = id ?: error("User ID가 null입니다. 저장 후 ID가 생성되어야 합니다.")
+
+    private fun Match.getIdOrThrow(): Long = id ?: error("Match ID가 null입니다. 저장 후 ID가 생성되어야 합니다.")
+
+    private fun evictUserCache(user: User) {
+        user.id?.let { matchCacheService.evictUserProfileCache(it) }
     }
 
     // ───────────────────────────────────────────────
@@ -199,7 +201,7 @@ internal class MatchControllerTest {
         val existingMatch = Match.createRequest(sender, receiver, BigDecimal.valueOf(0.8))
         matchRepository.save(existingMatch)
 
-        val receiverId = receiver.id ?: error("수신자 ID가 null입니다.")
+        val receiverId = receiver.getIdOrThrow()
 
         mockMvc.perform(
             get("$baseUrl/candidates/$receiverId")
@@ -218,7 +220,7 @@ internal class MatchControllerTest {
     @Test
     @DisplayName("좋아요 보내기 성공")
     fun sendLike_success() {
-        val receiverId = receiver.id ?: error("수신자 ID가 null입니다.")
+        val receiverId = receiver.getIdOrThrow()
         val req = LikeRequest(receiverId)
 
         mockMvc.perform(
@@ -230,7 +232,7 @@ internal class MatchControllerTest {
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.isMatched").value(false))
 
-        val senderId = sender.id ?: error("송신자 ID가 null입니다.")
+        val senderId = sender.getIdOrThrow()
         assertThat(matchRepository.findBySenderIdAndReceiverId(senderId, receiverId))
             .isPresent
     }
@@ -242,7 +244,7 @@ internal class MatchControllerTest {
         matchRepository.save(Match.createLike(receiver, sender, BigDecimal.valueOf(0.8)))
 
         // sender가 receiver에게 좋아요를 보냄
-        val receiverId = receiver.id ?: error("수신자 ID가 null입니다.")
+        val receiverId = receiver.getIdOrThrow()
         val req = LikeRequest(receiverId)
 
         mockMvc.perform(
@@ -255,8 +257,9 @@ internal class MatchControllerTest {
             .andExpect(jsonPath("$.isMatched").value(true))
 
         // 기존 Match가 REQUEST 타입으로 변경되었는지 확인
-        val senderId = sender.id ?: error("송신자 ID가 null입니다.")
-        val match = matchRepository.findMatchBetweenUsers(senderId, receiverId).orElseThrow()
+        val senderId = sender.getIdOrThrow()
+        val match = matchRepository.findMatchBetweenUsers(senderId, receiverId)
+            .orElseThrow { IllegalStateException("매칭을 찾을 수 없습니다.") }
         assertThat(match.matchType).isEqualTo(MatchType.REQUEST)
     }
 
@@ -265,7 +268,7 @@ internal class MatchControllerTest {
     fun cancelLike_success() {
         matchRepository.save(Match.createLike(sender, receiver, BigDecimal.valueOf(0.8)))
 
-        val receiverId = receiver.id ?: error("수신자 ID가 null입니다.")
+        val receiverId = receiver.getIdOrThrow()
 
         mockMvc.perform(
             delete("$baseUrl/$receiverId")
@@ -273,7 +276,7 @@ internal class MatchControllerTest {
         )
             .andExpect(status().isNoContent)
 
-        val senderId = sender.id ?: error("송신자 ID가 null입니다.")
+        val senderId = sender.getIdOrThrow()
         assertThat(matchRepository.findBySenderIdAndReceiverId(senderId, receiverId))
             .isEmpty
     }
@@ -284,7 +287,7 @@ internal class MatchControllerTest {
         val m = Match.createRequest(sender, receiver, BigDecimal.valueOf(0.85))
         matchRepository.save(m)
 
-        val matchId = m.id ?: error("매칭 ID가 null입니다. 저장 후 ID가 생성되어야 합니다.")
+        val matchId = m.getIdOrThrow()
         val req = MatchConfirmRequest("accept")
 
         mockMvc.perform(
@@ -297,7 +300,8 @@ internal class MatchControllerTest {
             .andExpect(jsonPath("$.matchStatus").value("PENDING"))
             .andExpect(jsonPath("$.message").value("룸메이트 매칭이 최종 확정되었습니다."))
 
-        val updated = matchRepository.findById(matchId).orElseThrow()
+        val updated = matchRepository.findById(matchId)
+            .orElseThrow { IllegalStateException("매칭을 찾을 수 없습니다.") }
         assertThat(updated.senderResponse).isEqualTo(MatchStatus.ACCEPTED)
     }
 
@@ -307,7 +311,7 @@ internal class MatchControllerTest {
         val m = Match.createRequest(sender, receiver, BigDecimal.valueOf(0.85))
         matchRepository.save(m)
 
-        val matchId = m.id ?: error("매칭 ID가 null입니다. 저장 후 ID가 생성되어야 합니다.")
+        val matchId = m.getIdOrThrow()
         val req = MatchConfirmRequest("accept")
 
         mockMvc.perform(
@@ -333,8 +337,8 @@ internal class MatchControllerTest {
     fun getMatchResults_success() {
         val accepted = Match.createRequest(sender, receiver, BigDecimal.valueOf(0.75))
 
-        val senderId = sender.id ?: error("송신자 ID가 null입니다.")
-        val receiverId = receiver.id ?: error("수신자 ID가 null입니다.")
+        val senderId = sender.getIdOrThrow()
+        val receiverId = receiver.getIdOrThrow()
 
         accepted.processUserResponse(senderId, MatchStatus.ACCEPTED)
         accepted.processUserResponse(receiverId, MatchStatus.ACCEPTED)
