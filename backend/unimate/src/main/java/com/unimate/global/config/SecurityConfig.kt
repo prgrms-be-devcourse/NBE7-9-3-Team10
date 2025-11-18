@@ -49,7 +49,8 @@ class SecurityConfig(
                         "/v3/api-docs/**",       // <- JSON 문서
                         "/swagger-ui/**",        // <- UI
                         "/swagger-ui.html",      // <- 직접 접근 시
-                        "/css/**", "/js/**", "/images/**", "/webjars/**"  // 임시용
+                        "/css/**", "/js/**", "/images/**", "/webjars/**",  // 임시용
+                        "/api/v1/admin/school/*"
                     ).permitAll()
                     .anyRequest().authenticated()
             }

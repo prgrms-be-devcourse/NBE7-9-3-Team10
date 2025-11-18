@@ -10,15 +10,19 @@ import Link from "next/link";
 const RegisterForm = () => {
   const router = useRouter();
 
-  const [email, setEmail] = useState('');
+  const [university, setUniversity] = useState('');
+  const [emailDomain, setEmailDomain] = useState('');
+  const [emailId, setEmailId] = useState('');
+  const [isSchoolVerified, setIsSchoolVerified] = useState(false);
+  
   const [code, setCode] = useState('');
   const [isCodeSent, setIsCodeSent] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
+  
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [name, setName] = useState('');
   const [birthDate, setBirthDate] = useState('');
-  const [university, setUniversity] = useState('');
   const [gender, setGender] = useState<Gender | ''>('');
   const [agree, setAgree] = useState(false);
 
@@ -26,23 +30,68 @@ const RegisterForm = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
 
-  /** ------------------ 이메일 인증 ------------------ */
-  const handleSendCode = async () => {
-    if (!email || !email.endsWith('.ac.kr')) {
-      setErrors({ email: '학교 이메일(.ac.kr)만 인증 가능합니다.' });
+  const handleVerifySchool = async () => {
+    if (!university) {
+      setErrors({ university: '대학교명을 입력해주세요.' });
       return;
     }
+
+    if (!university.endsWith('대학교')) {
+      setErrors({ university: '대학교명은 "대학교"로 끝나야 합니다.' });
+      return;
+    }
+
     setLoading(true);
     setErrors({});
     setMessage('');
 
     try {
-      await RegisterService.requestVerification(email);
+      const response = await fetch(
+        `/api/v1/email/school-domain?schoolName=${encodeURIComponent(university)}`
+      );
+      
+      if (!response.ok) {
+        throw new Error('학교를 찾을 수 없습니다.');
+      }
+
+      const data = await response.json();
+      
+      if (data.domain) {
+        setEmailDomain(data.domain);
+        setIsSchoolVerified(true);
+        setMessage('학교가 확인되었습니다. 이메일을 입력해주세요.');
+        setErrors({});
+      } else {
+        setErrors({ university: '해당 학교를 찾을 수 없습니다.' });
+        setIsSchoolVerified(false);
+      }
+    } catch (err) {
+      setErrors({ university: err instanceof Error ? err.message : '학교 확인에 실패했습니다.' });
+      setIsSchoolVerified(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSendCode = async () => {
+    if (!emailId) {
+      setErrors({ emailId: '이메일 아이디를 입력해주세요.' });
+      return;
+    }
+
+    const fullEmail = `${emailId}@${emailDomain}`;
+    
+    setLoading(true);
+    setErrors({});
+    setMessage('');
+
+    try {
+      await RegisterService.requestVerification(fullEmail);
       setIsCodeSent(true);
       setMessage('인증번호가 이메일로 전송되었습니다.');
     } catch (err) {
       const apiError = err as ApiError;
-      setErrors({ email: apiError.message });
+      setErrors({ emailId: apiError.message });
     } finally {
       setLoading(false);
     }
@@ -63,9 +112,11 @@ const RegisterForm = () => {
       return;
     }
 
+    const fullEmail = `${emailId}@${emailDomain}`;
+
     setLoading(true);
     try {
-      await RegisterService.verifyEmailCode(email, code);
+      await RegisterService.verifyEmailCode(fullEmail, code);
       setIsVerified(true);
       setMessage('이메일 인증이 완료되었습니다');
       setErrors({});
@@ -77,7 +128,6 @@ const RegisterForm = () => {
     }
   };
 
-  /** ------------------ 비밀번호 실시간 검증 ------------------ */
   const handlePasswordChange = (value: string) => {
     setPassword(value);
     const newErrors = { ...errors };
@@ -103,7 +153,6 @@ const RegisterForm = () => {
     setErrors(newErrors);
   };
 
-  /** ------------------ 회원가입 제출 ------------------ */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -116,9 +165,6 @@ const RegisterForm = () => {
       newErrors.confirmPassword = '비밀번호가 일치하지 않습니다.';
     if (!name) newErrors.name = '이름을 입력해주세요.';
     if (!birthDate) newErrors.birthDate = '생년월일을 입력해주세요.';
-    if (!university) newErrors.university = '대학교명을 입력해주세요.';
-    else if (!university.endsWith('대학교'))
-      newErrors.university = '대학교명은 "대학교"로 끝나야 합니다.';
     if (!gender) newErrors.gender = '성별을 선택해주세요.';
     if (!agree) newErrors.agree = '이용약관에 동의해주세요.';
 
@@ -126,9 +172,11 @@ const RegisterForm = () => {
     if (Object.keys(newErrors).length > 0) return;
 
     setLoading(true);
+    const fullEmail = `${emailId}@${emailDomain}`;
+
     try {
       await RegisterService.signup({
-        email,
+        email: fullEmail,
         password,
         name,
         gender: gender as Gender,
@@ -140,12 +188,10 @@ const RegisterForm = () => {
     } catch (err) {
       const apiError = err as ApiError;
 
-      // 에러 코드와 메시지에 따른 세분화된 처리
       if (apiError.errorCode === ERROR_CODES.BAD_REQUEST) {
-        // 이메일 관련 에러는 email 필드에 표시
         if (apiError.message.includes('이메일')) {
           setErrors({ email: apiError.message });
-          setIsVerified(false); // 인증 상태 초기화
+          setIsVerified(false);
         } else {
           setErrors({ form: apiError.message });
         }
@@ -160,7 +206,6 @@ const RegisterForm = () => {
     }
   };
 
-  /** ------------------ UI 렌더 ------------------ */
   return (
     <div className="w-full max-w-md bg-white rounded-2xl shadow p-8">
       <div className="flex flex-col items-center mb-6">
@@ -174,33 +219,72 @@ const RegisterForm = () => {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* 이메일 */}
+        {/* 대학교 */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">이메일</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">대학교</label>
           <div className="flex space-x-2">
             <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="email@uni.ac.kr"
-              className={`flex-1 border rounded-lg px-3 py-2 placeholder:text-gray-400 ${errors.email ? 'border-red-500' : 'border-gray-300'
-                } focus:ring-2 focus:ring-blue-500`}
-              disabled={isVerified}
+              type="text"
+              value={university}
+              onChange={(e) => setUniversity(e.target.value)}
+              placeholder="예: 서울대학교"
+              disabled={isSchoolVerified}
+              className={`flex-1 border rounded-lg px-3 py-2 placeholder:text-gray-400 ${
+                errors.university ? 'border-red-500' : 'border-gray-300'
+              } focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100`}
             />
             <button
               type="button"
-              onClick={handleSendCode}
-              disabled={loading || isVerified}
-              className={`px-4 py-2 rounded-lg text-white ${isVerified
-                ? 'bg-green-500 cursor-default'
-                : 'bg-blue-600 hover:bg-blue-700'
-                }`}
+              onClick={handleVerifySchool}
+              disabled={loading || isSchoolVerified}
+              className={`px-3 py-2 rounded-lg text-white text-sm font-medium whitespace-nowrap ${
+                isSchoolVerified
+                  ? 'bg-green-500 cursor-default'
+                  : 'bg-blue-600 hover:bg-blue-700'
+              } disabled:opacity-50`}
             >
-              {isVerified ? '인증 완료' : '인증번호 전송'}
+              {isSchoolVerified ? '확인됨' : '확인'}
             </button>
           </div>
-          {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+          {errors.university && <p className="text-red-500 text-sm mt-1">{errors.university}</p>}
         </div>
+
+        {/* 이메일 */}
+        {isSchoolVerified && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">이메일</label>
+            <div className="flex space-x-2">
+              <div className="flex-1 flex border border-gray-300 rounded-lg overflow-hidden">
+                <input
+                  type="text"
+                  value={emailId}
+                  onChange={(e) => setEmailId(e.target.value)}
+                  placeholder="이메일 아이디"
+                  disabled={isVerified}
+                  className={`flex-1 px-3 py-2 placeholder:text-gray-400 text-sm focus:outline-none disabled:bg-gray-100 ${
+                    errors.emailId ? 'border-red-500' : ''
+                  }`}
+                />
+                <span className="px-2 py-2 bg-gray-100 text-gray-600 text-sm font-medium border-l border-gray-300">
+                  @{emailDomain}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={handleSendCode}
+                disabled={loading || isVerified}
+                className={`px-3 py-2 rounded-lg text-white text-sm font-medium whitespace-nowrap ${
+                  isVerified
+                    ? 'bg-green-500 cursor-default'
+                    : 'bg-blue-600 hover:bg-blue-700'
+                } disabled:opacity-50`}
+              >
+                {isCodeSent ? '재전송' : '전송'}
+              </button>
+            </div>
+            {errors.emailId && <p className="text-red-500 text-sm mt-1">{errors.emailId}</p>}
+          </div>
+        )}
 
         {/* 인증번호 */}
         {isCodeSent && !isVerified && (
@@ -211,16 +295,17 @@ const RegisterForm = () => {
                 type="text"
                 value={code}
                 onChange={handleCodeInput}
-                placeholder="인증번호 6자리 입력"
+                placeholder="인증번호 6자리"
                 maxLength={6}
-                className={`flex-1 border rounded-lg px-3 py-2 placeholder:text-gray-400 ${errors.code ? 'border-red-500' : 'border-gray-300'
-                  } focus:ring-2 focus:ring-blue-500`}
+                className={`flex-1 border rounded-lg px-3 py-2 placeholder:text-gray-400 text-sm ${
+                  errors.code ? 'border-red-500' : 'border-gray-300'
+                } focus:ring-2 focus:ring-blue-500`}
               />
               <button
                 type="button"
                 onClick={handleVerifyCode}
                 disabled={loading}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                className="bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 text-sm font-medium whitespace-nowrap disabled:opacity-50"
               >
                 확인
               </button>
@@ -237,8 +322,9 @@ const RegisterForm = () => {
             value={password}
             onChange={(e) => handlePasswordChange(e.target.value)}
             placeholder="비밀번호를 입력하세요"
-            className={`w-full border rounded-lg px-3 py-2 placeholder:text-gray-400 ${errors.password ? 'border-red-500' : 'border-gray-300'
-              } focus:ring-2 focus:ring-blue-500`}
+            className={`w-full border rounded-lg px-3 py-2 placeholder:text-gray-400 text-sm ${
+              errors.password ? 'border-red-500' : 'border-gray-300'
+            } focus:ring-2 focus:ring-blue-500`}
           />
           {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
         </div>
@@ -251,8 +337,9 @@ const RegisterForm = () => {
             value={confirmPassword}
             onChange={(e) => handleConfirmPasswordChange(e.target.value)}
             placeholder="비밀번호를 다시 입력하세요"
-            className={`w-full border rounded-lg px-3 py-2 placeholder:text-gray-400 ${errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
-              } focus:ring-2 focus:ring-blue-500`}
+            className={`w-full border rounded-lg px-3 py-2 placeholder:text-gray-400 text-sm ${
+              errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
+            } focus:ring-2 focus:ring-blue-500`}
           />
           {errors.confirmPassword && (
             <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>
@@ -267,8 +354,9 @@ const RegisterForm = () => {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="홍길동"
-            className={`w-full border rounded-lg px-3 py-2 placeholder:text-gray-400 ${errors.name ? 'border-red-500' : 'border-gray-300'
-              } focus:ring-2 focus:ring-blue-500`}
+            className={`w-full border rounded-lg px-3 py-2 placeholder:text-gray-400 text-sm ${
+              errors.name ? 'border-red-500' : 'border-gray-300'
+            } focus:ring-2 focus:ring-blue-500`}
           />
           {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
         </div>
@@ -281,27 +369,12 @@ const RegisterForm = () => {
             value={birthDate}
             max={new Date().toISOString().split('T')[0]}
             onChange={(e) => setBirthDate(e.target.value)}
-            className={`w-full border rounded-lg px-3 py-2 ${errors.birthDate ? 'border-red-500' : 'border-gray-300'
-              } focus:ring-2 focus:ring-blue-500`}
+            className={`w-full border rounded-lg px-3 py-2 text-sm ${
+              errors.birthDate ? 'border-red-500' : 'border-gray-300'
+            } focus:ring-2 focus:ring-blue-500`}
           />
           {errors.birthDate && (
             <p className="text-red-500 text-sm mt-1">{errors.birthDate}</p>
-          )}
-        </div>
-
-        {/* 대학교 */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">대학교</label>
-          <input
-            type="text"
-            value={university}
-            onChange={(e) => setUniversity(e.target.value)}
-            placeholder="예: 서울대학교"
-            className={`w-full border rounded-lg px-3 py-2 placeholder:text-gray-400 ${errors.university ? 'border-red-500' : 'border-gray-300'
-              } focus:ring-2 focus:ring-blue-500`}
-          />
-          {errors.university && (
-            <p className="text-red-500 text-sm mt-1">{errors.university}</p>
           )}
         </div>
 
@@ -309,7 +382,7 @@ const RegisterForm = () => {
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">성별</label>
           <div className="flex space-x-4">
-            <label className="flex items-center space-x-2">
+            <label className="flex items-center space-x-2 text-sm">
               <input
                 type="radio"
                 name="gender"
@@ -319,7 +392,7 @@ const RegisterForm = () => {
               />
               <span>남성</span>
             </label>
-            <label className="flex items-center space-x-2">
+            <label className="flex items-center space-x-2 text-sm">
               <input
                 type="radio"
                 name="gender"
@@ -334,13 +407,13 @@ const RegisterForm = () => {
         </div>
 
         {/* 이용약관 */}
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 text-sm">
           <input
             type="checkbox"
             checked={agree}
             onChange={(e) => setAgree(e.target.checked)}
           />
-          <label className="text-sm text-gray-600">
+          <label className="text-gray-600">
             이용약관 및 개인정보처리방침에 동의합니다
           </label>
         </div>
@@ -353,11 +426,11 @@ const RegisterForm = () => {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-600 text-white py-2 rounded-lg mt-4 hover:bg-blue-700 disabled:bg-gray-400"
+          className="w-full bg-blue-600 text-white py-2 rounded-lg mt-4 hover:bg-blue-700 disabled:bg-gray-400 font-medium text-sm"
         >
           {loading ? '가입 중...' : '다음'}
         </button>
-        <div className="text-center text-sm text-gray-600 mt-6">
+        <div className="text-center text-xs text-gray-600 mt-4">
           이미 계정이 있으신가요?{" "}
           <Link
             href="/login"

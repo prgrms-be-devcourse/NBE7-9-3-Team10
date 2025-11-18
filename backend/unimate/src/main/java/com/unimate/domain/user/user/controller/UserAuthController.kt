@@ -58,7 +58,7 @@ class UserAuthController(
     @PostMapping("/token/refresh")
     @Operation(summary = "유저 토큰 재발급")
     fun refreshToken(
-        @CookieValue(name = "refreshToken", required = false) refreshToken: String
+        @CookieValue(name = "refreshToken", required = true) refreshToken: String
     ): ResponseEntity<AccessTokenResponse> {
         val newAccessToken = userAuthService.reissueAccessToken(refreshToken)
         return ResponseEntity.ok(AccessTokenResponse(newAccessToken))
@@ -67,7 +67,7 @@ class UserAuthController(
     @PostMapping("/logout")
     @Operation(summary = "유저 로그아웃", security = [SecurityRequirement(name = "BearerAuth")])
     fun logout(
-        @CookieValue(name = "refreshToken", required = false) refreshToken: String
+        @CookieValue(name = "refreshToken", required = true) refreshToken: String
     ): ResponseEntity<MessageResponse> {
         userAuthService.logout(refreshToken)
         val expired = expireCookie("refreshToken", cookieSecure, cookieSameSite)
