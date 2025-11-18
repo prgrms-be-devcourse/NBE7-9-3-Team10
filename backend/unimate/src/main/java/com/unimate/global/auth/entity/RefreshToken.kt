@@ -5,7 +5,6 @@ import com.unimate.global.entity.BaseEntity
 import jakarta.persistence.*
 
 @Entity
-
 @Table(
     name = "refresh_token",
     uniqueConstraints = [

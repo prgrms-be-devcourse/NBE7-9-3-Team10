@@ -18,22 +18,21 @@ class TokenService(
     fun issueTokens(subjectType: SubjectType, subjectId: Long, email: String): Tokens {
         val token = jwtProvider.generateToken(email, subjectId)
 
-        refreshTokenRepository.findBySubjectTypeAndSubjectId(subjectType, subjectId)
-            .ifPresentOrElse(
-                 { rt -> rt.updateToken(email, token.refreshToken) },
-                Runnable {
-                    refreshTokenRepository.save(
-                        RefreshToken(
-                            subjectType,
-                            subjectId,
-                            email,
-                            token.refreshToken
-                        )
-                    )
-                }
+        val existingToken = refreshTokenRepository.findBySubjectTypeAndSubjectId(subjectType, subjectId)
+        if (existingToken != null) {
+            existingToken.updateToken(email, token.refreshToken)
+        } else {
+            refreshTokenRepository.save(
+                RefreshToken(
+                    subjectType,
+                    subjectId,
+                    email,
+                    token.refreshToken
+                )
             )
+        }
 
-        return Tokens.of(subjectId, email, token.accessToken, token.refreshToken)
+        return Tokens(subjectId, email, token.accessToken, token.refreshToken)
     }
 
     @Transactional(readOnly = true)
@@ -43,7 +42,7 @@ class TokenService(
         }
 
         val stored = refreshTokenRepository.findByRefreshToken(refreshToken)
-            .orElseThrow { ServiceException.notFound("저장된 리프레시 토큰이 없습니다.") }
+            ?: throw ServiceException.notFound("저장된 리프레시 토큰이 없습니다.")
 
         val newToken = jwtProvider.generateToken(stored.email, stored.subjectId)
         return newToken.accessToken
@@ -52,7 +51,7 @@ class TokenService(
     @Transactional
     fun logout(refreshToken: String) {
         val rt = refreshTokenRepository.findByRefreshToken(refreshToken)
-            .orElseThrow{ ServiceException.badRequest("유효하지 않은 리프레시 토큰입니다.") }
+            ?: throw ServiceException.badRequest("유효하지 않은 리프레시 토큰입니다.")
         refreshTokenRepository.delete(rt)
     }
 }
