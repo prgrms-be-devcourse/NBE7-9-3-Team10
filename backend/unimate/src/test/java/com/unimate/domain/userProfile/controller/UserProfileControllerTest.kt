@@ -339,7 +339,7 @@ class UserProfileControllerTest(
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestJson)
         )
-            .andExpect(status().isBadRequest)
+            .andExpect(status().isConflict)
     }
 }
 

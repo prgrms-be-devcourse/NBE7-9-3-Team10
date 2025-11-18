@@ -28,6 +28,10 @@ class UserProfileService(
     fun create(email: String, req: ProfileCreateRequest): ProfileResponse {
         val userRef = userRepository.findByEmail(email)
             ?: throw ServiceException.notFound("이메일에 해당하는 유저를 찾을 수 없습니다.")
+
+        if (userProfileRepository.existsByUserEmail(email)) {
+            throw ServiceException.conflict("이미 등록된 프로필이 존재합니다.")
+        }
         
         val profile = UserProfile.fromRequest(userRef, req)
         val saved = userProfileRepository.save(profile)
