@@ -176,7 +176,7 @@ class UserAuthControllerTest {
                 .content(objectMapper.writeValueAsString(loginRequest))
         )
             .andExpect(status().isUnauthorized)
-            .andExpect(jsonPath("$.message").value("이메일 또는 비밀번호가 일치하지 않습니다."))
+            .andExpect(jsonPath("$.message").value("비밀번호가 일치하지 않습니다."))
     }
 
     @Test
@@ -190,7 +190,7 @@ class UserAuthControllerTest {
                 .content(objectMapper.writeValueAsString(loginRequest))
         )
             .andExpect(status().isUnauthorized)
-            .andExpect(jsonPath("$.message").value("이메일 또는 비밀번호가 일치하지 않습니다."))
+            .andExpect(jsonPath("$.message").value("이메일이 일치하지 않습니다."))
     }
 
     @Test
