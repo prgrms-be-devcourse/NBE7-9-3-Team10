@@ -5,7 +5,6 @@ import com.unimate.domain.user.admin.dto.AdminLoginResponse
 import com.unimate.domain.user.admin.dto.AdminSignupRequest
 import com.unimate.domain.user.admin.dto.AdminSignupResponse
 import com.unimate.domain.user.admin.service.AdminAuthService
-import com.unimate.domain.user.admin.service.AdminService
 import com.unimate.global.auth.dto.AccessTokenResponse
 import com.unimate.global.auth.dto.MessageResponse
 import com.unimate.global.util.expireCookie
@@ -24,7 +23,6 @@ import org.springframework.web.bind.annotation.*
 @Tag(name = "AdminAuthController", description = "관리자 인증인가 API")
 class AdminAuthController(
     private val adminAuthService: AdminAuthService,
-    private val adminUserService: AdminService,
 
     @Value("\${auth.cookie.secure:false}")
     private val cookieSecure: Boolean,
@@ -35,10 +33,8 @@ class AdminAuthController(
 
     @PostMapping("/signup")
     @Operation(summary = "관리자 회원가입")
-    fun signup(@Valid @RequestBody request: AdminSignupRequest): ResponseEntity<AdminSignupResponse> {
-        //         ^^^^^^^^^^^^^^^ @Valid를 @RequestBody 앞으로
-        return ResponseEntity.ok(adminAuthService.signup(request))
-    }
+    fun signup(@Valid @RequestBody request: AdminSignupRequest): ResponseEntity<AdminSignupResponse> =
+        ResponseEntity.ok(adminAuthService.signup(request))
 
     @PostMapping("/login")
     @Operation(summary = "관리자 로그인")
@@ -46,9 +42,9 @@ class AdminAuthController(
         val tokens = adminAuthService.login(request)
 
         val cookie = httpOnlyCookie(
-           "adminRefreshToken",
+            ADMIN_REFRESH_TOKEN_NAME,
             tokens.refreshToken,
-            7L * 24 * 60 * 60,
+            TOKEN_EXPIRY_SECONDS,
             cookieSecure,
             cookieSameSite
         )
@@ -61,22 +57,26 @@ class AdminAuthController(
     @PostMapping("/token/refresh")
     @Operation(summary = "관리자 토큰 재발급")
     fun refreshToken(
-        @CookieValue(name = "adminRefreshToken", required = true) refreshToken: String
-    ): ResponseEntity<AccessTokenResponse> {
-        val newAccessToken = adminAuthService.reissueAccessToken(refreshToken)
-        return ResponseEntity.ok(AccessTokenResponse(newAccessToken))
-    }
+        @CookieValue(name = ADMIN_REFRESH_TOKEN_NAME, required = true) refreshToken: String
+    ): ResponseEntity<AccessTokenResponse> =
+        ResponseEntity.ok(AccessTokenResponse(adminAuthService.reissueAccessToken(refreshToken)))
+
 
     @PostMapping("/logout")
     @Operation(summary = "관리자 로그아웃", security = [SecurityRequirement(name = "BearerAuth")])
     fun logout(
-        @CookieValue(name = "adminRefreshToken", required = true) refreshToken: String
+        @CookieValue(name = ADMIN_REFRESH_TOKEN_NAME, required = true) refreshToken: String
     ): ResponseEntity<MessageResponse> {
         adminAuthService.logout(refreshToken)
-        val expired = expireCookie("adminRefreshToken", cookieSecure, cookieSameSite)
+        val expired = expireCookie(ADMIN_REFRESH_TOKEN_NAME, cookieSecure, cookieSameSite)
 
         return ResponseEntity.ok()
             .header(HttpHeaders.SET_COOKIE, expired.toString())
             .body(MessageResponse("관리자 로그아웃이 완료되었습니다."))
+    }
+
+    companion object {
+        private const val ADMIN_REFRESH_TOKEN_NAME = "adminRefreshToken"
+        private const val TOKEN_EXPIRY_SECONDS = 7L * 24 * 60 * 60
     }
 }

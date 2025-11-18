@@ -56,7 +56,7 @@ class AdminAuthControllerTest {
             .andExpect(jsonPath("$.email").value(testEmail))
             .andExpect(jsonPath("$.name").value(testName))
 
-        assertThat(adminRepository.findByEmail(testEmail)).isPresent
+        assertThat(adminRepository.findByEmail(testEmail)).isNotNull
     }
 
     @Test
@@ -102,8 +102,9 @@ class AdminAuthControllerTest {
             .andExpect(status().isOk)
             .andReturn()
             .response
-            .getCookie("adminRefreshToken")!!
-            .value
+            .getCookie("adminRefreshToken")
+            ?.value
+            ?: throw AssertionError("RefreshToken이 없습니다.")
 
         mockMvc.perform(
             post("$baseUrl/token/refresh")
@@ -129,7 +130,7 @@ class AdminAuthControllerTest {
     fun `logout success`() {
         val loginRequest = AdminLoginRequest(testEmail, testPassword)
 
-        val loginResult = mockMvc.perform(
+        val loginResponse = mockMvc.perform(
             post("$baseUrl/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(loginRequest))
@@ -137,11 +138,12 @@ class AdminAuthControllerTest {
             .andExpect(status().isOk)
             .andReturn()
 
-        val accessToken = objectMapper.readTree(loginResult.response.contentAsString)
+        val accessToken = objectMapper.readTree(loginResponse.response.contentAsString)
             .get("accessToken")
             .asText()
 
-        val refreshToken = loginResult.response.getCookie("adminRefreshToken")!!.value
+        val refreshToken = loginResponse.response.getCookie("adminRefreshToken")?.value
+            ?: throw AssertionError("RefreshToken이 없습니다.")
 
         mockMvc.perform(
             post("$baseUrl/logout")
