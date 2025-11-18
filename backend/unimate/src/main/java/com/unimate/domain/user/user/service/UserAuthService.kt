@@ -52,10 +52,10 @@ class UserAuthService(
     @Transactional
     fun login(req: UserLoginRequest): Tokens {
         val user = userRepository.findByEmail(req.email)
-            .orElseThrow<ServiceException?>(Supplier { ServiceException.unauthorized("이메일 또는 비밀번호가 일치하지 않습니다.") })
+            .orElseThrow<ServiceException?>(Supplier { ServiceException.unauthorized("이메일이 일치하지 않습니다.") })
 
         if (!passwordEncoder.matches(req.password, user.password)) {
-            throw ServiceException.unauthorized("이메일 또는 비밀번호가 일치하지 않습니다.")
+            throw ServiceException.unauthorized("비밀번호가 일치하지 않습니다.")
         }
 
         return tokenService.issueTokens(SubjectType.USER, user.id!!, user.email)
