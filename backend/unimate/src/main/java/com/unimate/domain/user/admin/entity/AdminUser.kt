@@ -3,12 +3,8 @@ package com.unimate.domain.user.admin.entity
 import com.unimate.global.entity.BaseEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
-import lombok.Getter
-import lombok.NoArgsConstructor
 
 @Entity
-@Getter
-@NoArgsConstructor
 class AdminUser(
     @Column(
         nullable = false,
