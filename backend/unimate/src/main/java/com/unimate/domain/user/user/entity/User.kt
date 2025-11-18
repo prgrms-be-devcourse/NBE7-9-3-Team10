@@ -6,7 +6,7 @@ import java.time.LocalDate
 
 @Entity
 @Table(name = "users")
-class User @JvmOverloads constructor(
+class User(
     @Column(nullable = false, length = 50)
     var name: String,
 
@@ -28,17 +28,4 @@ class User @JvmOverloads constructor(
 
     @Column(nullable = false)
     var studentVerified: Boolean = false
-) : BaseEntity() {
-
-    fun updateName(newName: String) {
-        this.name = newName
-    }
-
-    fun updateEmail(newEmail: String) {
-        this.email = newEmail
-    }
-
-    fun verifyStudent() {
-        this.studentVerified = true
-    }
-}
+) : BaseEntity()
