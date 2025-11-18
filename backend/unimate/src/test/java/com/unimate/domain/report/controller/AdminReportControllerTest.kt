@@ -102,7 +102,7 @@ class AdminReportControllerTest {
             birthDate = LocalDate.now().minusYears(25),
             university = "Test University"
         )
-        user.verifyStudent()
+        user.studentVerified = true
         return userRepository.save(user)
     }
 

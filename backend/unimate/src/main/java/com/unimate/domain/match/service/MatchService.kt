@@ -108,7 +108,7 @@ class MatchService(
      */
     private fun getUserByEmail(email: String): User {
         return userRepository.findByEmail(email)
-            .orElseThrow { notFound("사용자를 찾을 수 없습니다.") }
+            ?: throw notFound("사용자를 찾을 수 없습니다.")
     }
 
 
@@ -125,7 +125,7 @@ class MatchService(
             cached.university
         )
         if (cached.studentVerified) {
-            user.verifyStudent()
+            user.studentVerified = true
         }
 
         return fromCached(user, cached)
@@ -252,7 +252,7 @@ class MatchService(
         receiverId: Long
     ): MatchRecommendationDetailResponse {
         val sender = userRepository.findByEmail(senderEmail)
-            .orElseThrow { notFound("사용자를 찾을 수 없습니다.") }
+            ?: throw notFound("사용자를 찾을 수 없습니다.")
 
         val senderId = sender.id ?: throw internalServerError("송신자 ID가 null입니다.")
 

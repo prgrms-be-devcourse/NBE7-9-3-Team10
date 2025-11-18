@@ -20,13 +20,13 @@ class ReportService(
     @Transactional
     fun create(reporterEmail: String, rq: ReportCreateRequest): ReportResponse {
         val reporter = userRepository.findByEmail(reporterEmail)
-            .orElseThrow { IllegalArgumentException("신고자 이메일 없음") }
+            ?: throw ServiceException.notFound("신고자 이메일 없음")
         val reported = userRepository.findByEmail(rq.reportedEmail)
-            .orElseThrow { IllegalArgumentException("피신고자 이메일 없음") }
+            ?: throw ServiceException.notFound("피신고자 이메일 없음")
 
         // 자신 신고 불가
         if (reporter.id == reported.id) {
-            throw IllegalArgumentException("자신은 신고 불가")
+            throw ServiceException.badRequest("자신은 신고할 수 없습니다.")
         }
 
         val report = Report(
@@ -39,7 +39,7 @@ class ReportService(
         val saved = reportRepository.save(report)
 
         return ReportResponse(
-            reportId = saved.id ?: throw ServiceException.badRequest("저장된 신고 ID가 null일 수 없습니다."),
+            reportId = saved.id ?: throw ServiceException.internalServerError("저장된 신고 ID가 null일 수 없습니다."),
             reporterEmail = reporterEmail,
             reportedEmail = rq.reportedEmail,
             category = saved.category,

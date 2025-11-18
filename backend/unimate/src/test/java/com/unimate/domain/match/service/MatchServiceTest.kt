@@ -30,7 +30,7 @@ import java.time.LocalDate
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
-class MatchServiceTest {
+ class MatchServiceTest {
 
     @Autowired
     private lateinit var matchService: MatchService
@@ -52,6 +52,11 @@ class MatchServiceTest {
 
     private lateinit var sender: User
     private lateinit var receiver: User
+
+    private fun User.getIdOrThrow(): Long = id ?: error("User ID가 null입니다. 저장 후 ID가 생성되어야 합니다.")
+
+    private fun Match.getIdOrThrow(): Long = id ?: error("Match ID가 null입니다. 저장 후 ID가 생성되어야 합니다.")
+
 
     @BeforeEach
     fun setUp() {
@@ -79,7 +84,7 @@ class MatchServiceTest {
             LocalDate.now().minusYears(27),
             "서울대학교"
         )
-        user.verifyStudent()
+        user.studentVerified = true
         return userRepository.save(user)
     }
 
@@ -124,7 +129,7 @@ class MatchServiceTest {
     }
 
     private fun createCachedUserProfile(user: User, profile: UserProfile): CachedUserProfile {
-        val userId = user.id ?: error("사용자 ID가 null입니다.")
+        val userId = user.getIdOrThrow()
         return CachedUserProfile(
             userId = userId,
             name = user.name,
@@ -157,7 +162,7 @@ class MatchServiceTest {
         val match1 = Match.createRequest(sender, receiver, BigDecimal.valueOf(0.8))
         matchRepository.save(match1)
 
-        val senderId = sender.id ?: error("송신자 ID가 null입니다.")
+        val senderId = sender.getIdOrThrow()
 
         // when
         val response = matchService.getMatchStatus(senderId)
@@ -175,8 +180,8 @@ class MatchServiceTest {
     fun `getMatchResults should return only ACCEPTED matches`() {
         // given
         val acceptedMatch = Match.createRequest(sender, receiver, BigDecimal.valueOf(0.8))
-        val senderId = sender.id ?: error("송신자 ID가 null입니다.")
-        val receiverId = receiver.id ?: error("수신자 ID가 null입니다.")
+        val senderId = sender.getIdOrThrow()
+        val receiverId = receiver.getIdOrThrow()
 
         // 실제 프로세스처럼 양쪽 모두 ACCEPTED 처리
         acceptedMatch.processUserResponse(senderId, MatchStatus.ACCEPTED)
@@ -202,7 +207,7 @@ class MatchServiceTest {
     @DisplayName("매칭 추천 목록 조회 성공")
     fun `getMatchRecommendations should return recommendations successfully`() {
         // given
-        val receiverId = receiver.id ?: error("수신자 ID가 null입니다.")
+        val receiverId = receiver.getIdOrThrow()
 
         // matchCacheService 모킹 설정
         val receiverProfile = userProfileRepository.findByUserId(receiverId)
@@ -225,7 +230,7 @@ class MatchServiceTest {
     @DisplayName("매칭 추천 상세 조회 성공")
     fun `getMatchRecommendationDetail should return detail successfully`() {
         // given
-        val receiverId = receiver.id ?: error("수신자 ID가 null입니다.")
+        val receiverId = receiver.getIdOrThrow()
 
         // matchCacheService 모킹 설정
         val receiverProfile = userProfileRepository.findByUserId(receiverId)
@@ -247,8 +252,8 @@ class MatchServiceTest {
     @DisplayName("좋아요 보내기 성공")
     fun `sendLike should create new like successfully`() {
         // given
-        val senderId = sender.id ?: error("송신자 ID가 null입니다.")
-        val receiverId = receiver.id ?: error("수신자 ID가 null입니다.")
+        val senderId = sender.getIdOrThrow()
+        val receiverId = receiver.getIdOrThrow()
         val request = LikeRequest(receiverId)
 
         // matchCacheService 모킹 설정
@@ -269,7 +274,7 @@ class MatchServiceTest {
     @DisplayName("좋아요 보내기 실패 - 자기 자신에게 보내는 경우")
     fun `sendLike should fail when sending to self`() {
         // given
-        val senderId = sender.id ?: error("송신자 ID가 null입니다.")
+        val senderId = sender.getIdOrThrow()
         val request = LikeRequest(senderId)
 
         // when & then
@@ -283,8 +288,8 @@ class MatchServiceTest {
     @DisplayName("좋아요 취소 성공")
     fun `cancelLike should delete like successfully`() {
         // given
-        val senderId = sender.id ?: error("송신자 ID가 null입니다.")
-        val receiverId = receiver.id ?: error("수신자 ID가 null입니다.")
+        val senderId = sender.getIdOrThrow()
+        val receiverId = receiver.getIdOrThrow()
         val like = Match.createLike(sender, receiver, BigDecimal.valueOf(0.8))
         matchRepository.save(like)
 
@@ -299,8 +304,8 @@ class MatchServiceTest {
     @DisplayName("좋아요 취소 실패 - 존재하지 않는 좋아요")
     fun `cancelLike should fail when like does not exist`() {
         // given
-        val senderId = sender.id ?: error("송신자 ID가 null입니다.")
-        val receiverId = receiver.id ?: error("수신자 ID가 null입니다.")
+        val senderId = sender.getIdOrThrow()
+        val receiverId = receiver.getIdOrThrow()
 
         // when & then
         val exception = assertThrows<ServiceException> {
@@ -316,8 +321,8 @@ class MatchServiceTest {
         val match = Match.createRequest(sender, receiver, BigDecimal.valueOf(0.85))
         matchRepository.save(match)
 
-        val matchId = match.id ?: error("매칭 ID가 null입니다.")
-        val senderId = sender.id ?: error("송신자 ID가 null입니다.")
+        val matchId = match.getIdOrThrow()
+        val senderId = sender.getIdOrThrow()
 
         // when
         val result = matchService.confirmMatch(matchId, senderId)
@@ -332,7 +337,7 @@ class MatchServiceTest {
     fun `confirmMatch should fail when match does not exist`() {
         // given
         val nonExistentMatchId = 999L
-        val senderId = sender.id ?: error("송신자 ID가 null입니다.")
+        val senderId = sender.getIdOrThrow()
 
         // when & then
         val exception = assertThrows<ServiceException> {
@@ -349,8 +354,8 @@ class MatchServiceTest {
         val match = Match.createRequest(sender, receiver, BigDecimal.valueOf(0.85))
         matchRepository.save(match)
 
-        val matchId = match.id ?: error("매칭 ID가 null입니다.")
-        val thirdUserId = thirdUser.id ?: error("제삼자 ID가 null입니다.")
+        val matchId = match.getIdOrThrow()
+        val thirdUserId = thirdUser.getIdOrThrow()
 
         // when & then
         val exception = assertThrows<ServiceException> {
@@ -366,8 +371,8 @@ class MatchServiceTest {
         val match = Match.createRequest(sender, receiver, BigDecimal.valueOf(0.85))
         matchRepository.save(match)
 
-        val matchId = match.id ?: error("매칭 ID가 null입니다.")
-        val senderId = sender.id ?: error("송신자 ID가 null입니다.")
+        val matchId = match.getIdOrThrow()
+        val senderId = sender.getIdOrThrow()
 
         // when
         val result = matchService.rejectMatch(matchId, senderId)
@@ -382,7 +387,7 @@ class MatchServiceTest {
     fun `rejectMatch should fail when match does not exist`() {
         // given
         val nonExistentMatchId = 999L
-        val senderId = sender.id ?: error("송신자 ID가 null입니다.")
+        val senderId = sender.getIdOrThrow()
 
         // when & then
         val exception = assertThrows<ServiceException> {
@@ -399,8 +404,8 @@ class MatchServiceTest {
         val match = Match.createRequest(sender, receiver, BigDecimal.valueOf(0.85))
         matchRepository.save(match)
 
-        val matchId = match.id ?: error("매칭 ID가 null입니다.")
-        val thirdUserId = thirdUser.id ?: error("제삼자 ID가 null입니다.")
+        val matchId = match.getIdOrThrow()
+        val thirdUserId = thirdUser.getIdOrThrow()
 
         // when & then
         val exception = assertThrows<ServiceException> {
