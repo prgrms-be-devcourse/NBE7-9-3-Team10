@@ -7,6 +7,8 @@ data class ChatRoomDetailResponse(
     val partnerName: String,
     val partnerUniversity: String,
     val isPartnerDeleted: Boolean,
+    val isBlocked: Boolean,              // 내가 상대방을 차단했는지
+    val isBlockedByPartner: Boolean,    // 상대방이 나를 차단했는지
     val status: String,              // ACTIVE | CLOSED
     val user1Status: String,
     val user2Status: String,

@@ -10,22 +10,22 @@ import java.time.LocalDate
 data class UserSignupRequest(
     @field:Email(message = "올바른 이메일 형식이어야 합니다.")
     @field:NotBlank(message = "이메일은 필수입니다.")
-    var email: String,
+    val email: String,
 
     @field:NotBlank(message = "비밀번호는 필수입니다.")
     @field:Size(min = 8, message = "비밀번호는 8자 이상이어야 합니다.")
-    var password: String,
+    val password: String,
 
     @field:NotBlank(message = "이름은 필수입니다.")
-    var name: String,
+    val name: String,
 
     @field:NotNull(message = "성별은 필수입니다.")
-    var gender: Gender,
+    val gender: Gender,
 
     @field:NotNull(message = "생년월일은 필수입니다.")
-    var birthDate: LocalDate,
+    val birthDate: LocalDate,
 
     @field:NotBlank(message = "대학교는 필수입니다.")
-    var university:  String
+    val university:  String
 )
 

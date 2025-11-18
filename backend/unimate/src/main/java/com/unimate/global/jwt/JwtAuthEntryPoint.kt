@@ -9,7 +9,10 @@ import org.springframework.stereotype.Component
 
 @Component
 class JwtAuthEntryPoint : AuthenticationEntryPoint {
-    private val log = LoggerFactory.getLogger(JwtAuthEntryPoint::class.java)
+
+    companion object {
+        private val log = LoggerFactory.getLogger(JwtAuthEntryPoint::class.java)
+    }
 
     override fun commence(
         request: HttpServletRequest,

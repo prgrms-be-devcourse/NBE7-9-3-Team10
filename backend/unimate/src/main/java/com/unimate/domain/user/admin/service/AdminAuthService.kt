@@ -21,30 +21,32 @@ class AdminAuthService(
 ) {
 
     @Transactional
-    fun signup(req: AdminSignupRequest): AdminSignupResponse {
-        if (adminUserRepository.existsByEmail(req.email)) {
+    fun signup(request: AdminSignupRequest): AdminSignupResponse {
+        if (adminUserRepository.existsByEmail(request.email)) {
             throw ServiceException.badRequest("이미 등록된 관리자 이메일입니다.")
         }
 
         val admin = AdminUser(
-            req.email,
-            passwordEncoder.encode(req.password),
-            req.name
+            request.email,
+            passwordEncoder.encode(request.password),
+            request.name
         )
 
         val savedAdmin = adminUserRepository.save(admin)
 
-        val adminId = requireNotNull(savedAdmin.id) { "저장된 관리자의 ID가 null입니다." }
-
-        return AdminSignupResponse(adminId, savedAdmin.email, savedAdmin.name)
+        return AdminSignupResponse(
+            requireNotNull(savedAdmin.id) { "저장된 관리자의 ID가 null입니다." },
+            savedAdmin.email,
+            savedAdmin.name
+        )
     }
 
     @Transactional
-    fun login(req: AdminLoginRequest): Tokens {
-        val admin = adminUserRepository.findByEmail(req.email)
-            .orElseThrow { ServiceException.notFound("관리자를 찾을 수 없습니다.") }
+    fun login(request: AdminLoginRequest): Tokens {
+        val admin = adminUserRepository.findByEmail(request.email)
+            ?: throw ServiceException.notFound("관리자를 찾을 수 없습니다.")
 
-        if (!passwordEncoder.matches(req.password, admin.password)) {
+        if (!passwordEncoder.matches(request.password, admin.password)) {
             throw ServiceException.unauthorized("비밀번호가 일치하지 않습니다.")
         }
 
@@ -54,9 +56,8 @@ class AdminAuthService(
     }
 
     @Transactional(readOnly = true)
-    fun reissueAccessToken(refreshToken: String): String {
-        return tokenService.reissueAccessToken(refreshToken)
-    }
+    fun reissueAccessToken(refreshToken: String): String =
+        tokenService.reissueAccessToken(refreshToken)
 
     @Transactional
     fun logout(refreshToken: String) {

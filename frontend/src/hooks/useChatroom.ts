@@ -8,12 +8,32 @@ import type {
   WsSendAckResponse,
   WsError,
 } from '@/types/chat'
+import { BlockService } from '@/lib/services/blockService'
 
 function useChatroom(chatroomId: number) {
   const [messages, setMessages] = useState<WsMessagePush[]>([])
+  const [isPartnerBlocked, setIsPartnerBlocked] = useState(false)
+  const isPartnerBlockedRef = useRef(false)
   const subRef = useRef<StompSubscription | null>(null)
   const ackRef = useRef<StompSubscription | null>(null)
   const errRef = useRef<StompSubscription | null>(null)
+
+  // 차단 상태 확인
+  useEffect(() => {
+    const checkBlockStatus = async () => {
+      try {
+        const blocked = await BlockService.isPartnerBlocked(chatroomId)
+        setIsPartnerBlocked(blocked)
+        isPartnerBlockedRef.current = blocked
+      } catch (error) {
+        console.error('[Block Status] Check failed:', error)
+        setIsPartnerBlocked(false)
+        isPartnerBlockedRef.current = false
+      }
+    }
+    
+    checkBlockStatus()
+  }, [chatroomId])
 
   // 메시지 히스토리 로드
   useEffect(() => {
@@ -29,14 +49,16 @@ function useChatroom(chatroomId: number) {
         
         const historyData = response.data
         if (historyData.items && Array.isArray(historyData.items)) {
-          const historyMessages: WsMessagePush[] = historyData.items.map((msg: any) => ({
-            messageId: msg.messageId,
-            chatroomId: chatroomId,
-            senderId: msg.senderId,
-            type: msg.type || 'TEXT',
-            content: msg.content,
-            createdAt: msg.createdAt
-          }))
+          // 차단해도 이전 채팅 내용은 볼 수 있도록 필터링하지 않음
+          const historyMessages: WsMessagePush[] = historyData.items
+            .map((msg: any) => ({
+              messageId: msg.messageId,
+              chatroomId: chatroomId,
+              senderId: msg.senderId,
+              type: msg.type || 'TEXT',
+              content: msg.content,
+              createdAt: msg.createdAt
+            }))
           
           // 시간 순으로 정렬
           const sortedMessages = historyMessages.sort((a, b) => {
@@ -92,6 +114,7 @@ function useChatroom(chatroomId: number) {
         subRef.current = ws.subscribe(`/sub/chatroom.${chatroomId}`, async (msg) => {
           try {
             const body = JSON.parse(msg.body) as WsMessagePush
+            
             setMessages((prev) => {
               const exists = prev.some(m => m.messageId === body.messageId)
               if (exists) return prev
@@ -99,8 +122,6 @@ function useChatroom(chatroomId: number) {
             })
             
             // 새 메시지가 오면 즉시 읽음 처리 (상대방이 보낸 메시지만)
-            const currentUserId = typeof window !== 'undefined' ? 
-              parseInt(localStorage.getItem('userId') || '0') : 0
             if (body.senderId !== currentUserId) {
               try {
                 const { apiClient } = await import('@/lib/services/api')
@@ -248,7 +269,7 @@ function useChatroom(chatroomId: number) {
     }
   }
 
-  return { messages, send, reconnect }
+  return { messages, send, reconnect, isPartnerBlocked }
 }
 
 export default useChatroom

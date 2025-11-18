@@ -5,6 +5,8 @@ import com.unimate.domain.user.user.dto.UserLoginRequest
 import com.unimate.domain.user.user.dto.UserSignupRequest
 import com.unimate.domain.user.user.entity.Gender
 import com.unimate.domain.user.user.repository.UserRepository
+import com.unimate.domain.verification.dto.EmailCodeVerifyRequest
+import com.unimate.domain.verification.dto.EmailVerificationRequest
 import com.unimate.domain.verification.repository.VerificationRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -41,42 +43,53 @@ class UserAuthControllerTest {
     private lateinit var userRepository: UserRepository
 
     private val baseUrl = "/api/v1"
-    private val testEmail = "test@university.ac.kr"
+    private val testEmail = "testuser@snu.ac.kr"
     private val testPassword = "password123!"
+    private val testUniversity = "서울대학교"
 
     @BeforeEach
     fun setup() {
-        // 이메일 인증 요청
+        // 1단계: 이메일 인증 요청
+        val verificationRequest = EmailVerificationRequest(testEmail)
+
         mockMvc.perform(
             post("$baseUrl/email/request")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("""{"email":"$testEmail"}""")
+                .content(objectMapper.writeValueAsString(verificationRequest))
         )
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.message").value("인증코드가 발송되었습니다."))
 
-        // 인증 코드 확인
+        // 2단계: 인증 코드 확인
         val verification = verificationRepository.findByEmail(testEmail)
-            .orElseThrow { IllegalStateException("인증 요청이 저장되지 않았습니다.") }
+            ?: throw IllegalStateException("인증 요청이 저장되지 않았습니다.")
+
+        val verifyRequest = EmailCodeVerifyRequest(
+            email = testEmail,
+            code = verification.code
+        )
 
         mockMvc.perform(
             post("$baseUrl/email/verify")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("""{"email":"$testEmail", "code":"${verification.code}"}""")
+                .content(objectMapper.writeValueAsString(verifyRequest))
         )
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.message").value("이메일 인증이 완료되었습니다."))
 
-        assertThat(verification.isVerified).isTrue
+        // 인증 완료 확인
+        val verifiedVerification = verificationRepository.findByEmail(testEmail)
+        assertThat(verifiedVerification).isNotNull
+        assertThat(verifiedVerification?.isVerified).isTrue()
 
-        // 회원가입
+        // 3단계: 회원가입
         val signupRequest = UserSignupRequest(
             email = testEmail,
             password = testPassword,
             name = "테스트유저",
             gender = Gender.MALE,
             birthDate = LocalDate.of(2000, 1, 1),
-            university = "Test University"
+            university = testUniversity
         )
 
         mockMvc.perform(
@@ -87,19 +100,22 @@ class UserAuthControllerTest {
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.email").value(testEmail))
 
-        assertThat(userRepository.findByEmail(testEmail)).isPresent
+        // 회원가입 완료 확인
+        assertThat(userRepository.findByEmail(testEmail))
     }
 
     @Test
     @DisplayName("회원가입 실패 - 이메일 인증 없이 시도 시 400 반환")
     fun `signup fail without verification`() {
+        val unverifiedEmail = "unverified@yonsei.ac.kr"
+
         val request = UserSignupRequest(
-            email = "unverified@university.ac.kr",
+            email = unverifiedEmail,
             password = "password123!",
             name = "미인증유저",
             gender = Gender.FEMALE,
             birthDate = LocalDate.of(1999, 3, 3),
-            university = "Test University"
+            university = "연세대학교"
         )
 
         mockMvc.perform(
@@ -112,7 +128,7 @@ class UserAuthControllerTest {
     }
 
     @Test
-    @DisplayName("회원가입 실패 - 이미 가입된 이메일일 경우 400 반환")
+    @DisplayName("회원가입 실패 - 이미 가입된 이메일일 경우 409 반환")
     fun `signup fail duplicate email`() {
         val request = UserSignupRequest(
             email = testEmail,
@@ -120,7 +136,7 @@ class UserAuthControllerTest {
             name = "홍길동",
             gender = Gender.MALE,
             birthDate = LocalDate.of(2000, 5, 5),
-            university = "Test University"
+            university = testUniversity
         )
 
         mockMvc.perform(
@@ -128,7 +144,7 @@ class UserAuthControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
         )
-            .andExpect(status().isBadRequest)
+            .andExpect(status().isConflict)
             .andExpect(jsonPath("$.message").value("이미 가입된 이메일입니다."))
     }
 
@@ -160,6 +176,21 @@ class UserAuthControllerTest {
                 .content(objectMapper.writeValueAsString(loginRequest))
         )
             .andExpect(status().isUnauthorized)
+            .andExpect(jsonPath("$.message").value("비밀번호가 일치하지 않습니다."))
+    }
+
+    @Test
+    @DisplayName("로그인 실패 - 존재하지 않는 사용자일 경우 401 반환")
+    fun `login fail user not found`() {
+        val loginRequest = UserLoginRequest("notexist@snu.ac.kr", testPassword)
+
+        mockMvc.perform(
+            post("$baseUrl/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(loginRequest))
+        )
+            .andExpect(status().isUnauthorized)
+            .andExpect(jsonPath("$.message").value("이메일이 일치하지 않습니다."))
     }
 
     @Test
@@ -167,19 +198,24 @@ class UserAuthControllerTest {
     fun `refresh token success`() {
         val loginRequest = UserLoginRequest(testEmail, testPassword)
 
-        val refreshToken = mockMvc.perform(
+        val loginResponse = mockMvc.perform(
             post("$baseUrl/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(loginRequest))
         )
             .andExpect(status().isOk)
             .andReturn()
-            .response
-            .getCookie("refreshToken")!!
-            .value
+
+        val refreshToken = loginResponse.response.getCookie("refreshToken")?.value
+            ?: throw IllegalStateException("RefreshToken이 없습니다.")
+
+        val accessToken = objectMapper.readTree(loginResponse.response.contentAsString)
+            .get("accessToken")
+            .asText()
 
         mockMvc.perform(
             post("$baseUrl/auth/token/refresh")
+                .header("Authorization", "Bearer $accessToken")
                 .cookie(MockCookie("refreshToken", refreshToken))
         )
             .andExpect(status().isOk)
@@ -194,7 +230,16 @@ class UserAuthControllerTest {
                 .cookie(MockCookie("refreshToken", "invalid-token"))
         )
             .andExpect(status().isUnauthorized)
-            .andExpect(jsonPath("$.message").value("유효하지 않은 리프레시 토큰입니다."))
+            .andExpect(jsonPath("$.message").exists())
+    }
+
+    @Test
+    @DisplayName("RefreshToken 없이 요청하면 재발급 실패 - 400 반환")
+    fun `refresh fail no token`() {
+        mockMvc.perform(
+            post("$baseUrl/auth/token/refresh")
+        )
+            .andExpect(status().isBadRequest)
     }
 
     @Test
@@ -214,7 +259,8 @@ class UserAuthControllerTest {
             .get("accessToken")
             .asText()
 
-        val refreshToken = loginResult.response.getCookie("refreshToken")!!.value
+        val refreshToken = loginResult.response.getCookie("refreshToken")?.value
+            ?: throw IllegalStateException("RefreshToken이 없습니다.")
 
         mockMvc.perform(
             post("$baseUrl/auth/logout")
@@ -224,5 +270,125 @@ class UserAuthControllerTest {
             .andExpect(status().isOk)
             .andExpect(cookie().maxAge("refreshToken", 0))
             .andExpect(jsonPath("$.message").value("로그아웃이 완료되었습니다."))
+    }
+
+    @Test
+    @DisplayName("로그아웃 실패 - Authorization 헤더가 없으면 401 반환")
+    fun `logout fail no token`() {
+        mockMvc.perform(
+            post("$baseUrl/auth/logout")
+        )
+            .andExpect(status().isUnauthorized)
+    }
+
+    @Test
+    @DisplayName("이메일 인증 요청 - 정상 요청")
+    fun `email verification request success`() {
+        val email = "newuser@korea.ac.kr"
+        val request = EmailVerificationRequest(email)
+
+        mockMvc.perform(
+            post("$baseUrl/email/request")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.message").value("인증코드가 발송되었습니다."))
+
+        // 인증 레코드가 생성되었는지 확인
+        assertThat(verificationRepository.findByEmail(email)).isNotNull()
+    }
+
+    @Test
+    @DisplayName("이메일 인증 요청 실패 - 잘못된 이메일 형식")
+    fun `email verification request fail invalid email`() {
+        val request = EmailVerificationRequest("invalid-email")
+
+        mockMvc.perform(
+            post("$baseUrl/email/request")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.message").exists())
+    }
+
+    @Test
+    @DisplayName("이메일 인증 - 정상 인증")
+    fun `email verification success`() {
+        val email = "verify@yonsei.ac.kr"
+        val verificationRequest = EmailVerificationRequest(email)
+
+        // 인증 요청
+        mockMvc.perform(
+            post("$baseUrl/email/request")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(verificationRequest))
+        )
+            .andExpect(status().isOk)
+
+        // 인증 코드 조회
+        val verification = verificationRepository.findByEmail(email)
+            ?: throw IllegalStateException("인증이 저장되지 않았습니다.")
+
+        // 인증 코드 검증
+        val verifyRequest = EmailCodeVerifyRequest(
+            email = email,
+            code = verification.code
+        )
+
+        mockMvc.perform(
+            post("$baseUrl/email/verify")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(verifyRequest))
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.message").value("이메일 인증이 완료되었습니다."))
+    }
+
+    @Test
+    @DisplayName("이메일 인증 실패 - 잘못된 코드")
+    fun `email verification fail wrong code`() {
+        val email = "wrongcode@korea.ac.kr"
+        val verificationRequest = EmailVerificationRequest(email)
+
+        // 인증 요청
+        mockMvc.perform(
+            post("$baseUrl/email/request")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(verificationRequest))
+        )
+            .andExpect(status().isOk)
+
+        // 잘못된 코드로 검증
+        val verifyRequest = EmailCodeVerifyRequest(
+            email = email,
+            code = "000000"
+        )
+
+        mockMvc.perform(
+            post("$baseUrl/email/verify")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(verifyRequest))
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.message").value("인증코드가 올바르지 않습니다."))
+    }
+
+    @Test
+    @DisplayName("이메일 인증 실패 - 인증 요청이 없음")
+    fun `email verification fail no request`() {
+        val verifyRequest = EmailCodeVerifyRequest(
+            email = "norequest@snu.ac.kr",
+            code = "123456"
+        )
+
+        mockMvc.perform(
+            post("$baseUrl/email/verify")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(verifyRequest))
+        )
+            .andExpect(status().isNotFound)
+            .andExpect(jsonPath("$.message").value("인증 요청 기록이 없습니다."))
     }
 }

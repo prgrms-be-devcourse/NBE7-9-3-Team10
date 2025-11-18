@@ -29,53 +29,53 @@ repositories {
 }
 
 dependencies {
-
-    // Spring Boot
-    implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-validation")
-    implementation("org.springframework.boot:spring-boot-starter-mail")
+    implementation("org.springframework.boot:spring-boot-starter-web")
 
-    // WebSocket / STOMP
+    //WebSocket(STOMP) + spring-messaging
     implementation("org.springframework.boot:spring-boot-starter-websocket")
+    //WebSocket에서 @AuthenticationPrincipal 등 Security 연동
     implementation("org.springframework.security:spring-security-messaging")
 
-    // Redis
-    implementation("org.springframework.boot:spring-boot-starter-data-redis")
-    implementation("org.springframework.boot:spring-boot-starter-cache")
-
-    // Jackson
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-
-    // Kotlin
-    implementation("org.jetbrains.kotlin:kotlin-reflect")
-
-    // DB
+    compileOnly("org.projectlombok:lombok")
+    //developmentOnly("org.springframework.boot:spring-boot-devtools")
     runtimeOnly("com.h2database:h2")
     runtimeOnly("com.mysql:mysql-connector-j")
-
-    // Lombok (점진적 마이그레이션 시 필요)
-    compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.security:spring-security-test")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
-    // Swagger UI
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.13")
-
-    // JWT
     implementation("io.jsonwebtoken:jjwt-api:0.12.6")
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6")
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
 
-    // Random seed / Batch
+    implementation("org.springframework.boot:spring-boot-starter-mail")
+
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.13")
+
+    //부하 테스트를 위해 랜덤 시드 생성 의존성
     implementation("org.springframework.boot:spring-boot-starter-batch")
     implementation("net.datafaker:datafaker:2.5.2")
 
-    // Test
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("org.springframework.security:spring-security-test")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    // Redis
+    implementation("org.springframework.boot:spring-boot-starter-data-redis")
+    // Redis 캐시 추상화
+    implementation("org.springframework.boot:spring-boot-starter-cache")
+    // Jackson
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    implementation("org.jetbrains.kotlin:kotlin-reflect")
+
+    // Kotlin Coroutines - 비동기 작업을 위한 코루틴 라이브러리
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.7.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-spring:1.7.3")
+
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.4.0")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 }
 
 kotlin {

@@ -11,10 +11,11 @@ import com.unimate.domain.message.repository.MessageRepository
 import com.unimate.domain.notification.entity.NotificationType
 import com.unimate.domain.notification.service.NotificationService
 import com.unimate.domain.user.user.repository.UserRepository
+import com.unimate.domain.userBlock.service.UserBlockService
 import com.unimate.global.jwt.CustomUserPrincipal
 import io.swagger.v3.oas.annotations.tags.Tag
-import org.slf4j.LoggerFactory
 import org.springframework.dao.DataIntegrityViolationException
+import org.springframework.http.HttpStatus
 import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.messaging.handler.annotation.Payload
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor
@@ -22,6 +23,7 @@ import org.springframework.messaging.simp.SimpMessageSendingOperations
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Controller
+import org.springframework.web.server.ResponseStatusException
 import java.security.Principal
 import java.time.format.DateTimeFormatter
 import java.util.Optional
@@ -34,14 +36,13 @@ class ChatWsController(
     private val messagingTemplate: SimpMessageSendingOperations,
     private val notificationService: NotificationService,
     private val userRepository: UserRepository,
-    private val userSessionService: UserSessionService
+    private val userSessionService: UserSessionService,
+    private val userBlockService: UserBlockService
 ) {
 
     companion object {
         private val ISO: DateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
     }
-
-    private val log = LoggerFactory.getLogger(javaClass)
 
     @MessageMapping("/chat.send")
     fun sendMessage(
@@ -57,6 +58,26 @@ class ChatWsController(
 
         try {
             val room = chatroomService.validateWritable(userId, req.chatroomId)
+
+            // 상대방 ID 확인
+            val partnerId = if (room.user1Id == userId) room.user2Id else room.user1Id
+            val partner = partnerId ?: throw IllegalStateException("상대방을 찾을 수 없습니다.")
+
+            // 차단 체크: 내가 상대방을 차단했는지 확인
+            if (userBlockService.isBlocked(userId, partner)) {
+                throw ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "차단한 사용자에게는 메시지를 보낼 수 없습니다."
+                )
+            }
+
+            // 차단 체크: 상대방이 나를 차단했는지 확인
+            if (userBlockService.isBlocked(partner, userId)) {
+                throw ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "메시지를 보낼 수 없습니다."
+                )
+            }
 
             var message = messageRepository
                 .findByChatroom_IdAndSenderIdAndClientMessageId(req.chatroomId, userId, req.clientMessageId)
@@ -83,6 +104,7 @@ class ChatWsController(
 
             val timestamp = message.createdAt?.format(ISO)
 
+            // 메시지 전송
             val push = WsMessagePush(
                 messageId = message.id,
                 chatroomId = room.id,
@@ -93,18 +115,8 @@ class ChatWsController(
             )
             messagingTemplate.convertAndSend("/sub/chatroom.${room.id}", push)
 
-            val ack = WsSendAckResponse(
-                clientMessageId = req.clientMessageId,
-                messageId = message.id,
-                status = "OK",
-                createdAt = timestamp ?: ""
-            )
-            messagingTemplate.convertAndSendToUser(userNameKey, "/queue/chat.ack", ack)
-
-            val partnerId = if (room.user1Id == userId) room.user2Id else room.user1Id
-            val partner = partnerId ?: return
+            // 알림 전송
             val chatroomId = room.id ?: return
-
             if (!userSessionService.isUserInChatroom(partner, chatroomId)) {
                 val sender = userRepository.findById(userId)
                     .orElseThrow { IllegalStateException("사용자를 찾을 수 없습니다.") }
@@ -118,15 +130,17 @@ class ChatWsController(
                     chatroomId = room.id
                 )
             }
-        } catch (ex: Exception) {
-            log.error(
-                "Failed to send message: chatroomId={}, senderId={}, clientMessageId={}, error={}",
-                req.chatroomId,
-                userId,
-                req.clientMessageId,
-                ex.message,
-                ex
+
+            // ACK 전송
+            val ack = WsSendAckResponse(
+                clientMessageId = req.clientMessageId,
+                messageId = message.id,
+                status = "OK",
+                createdAt = timestamp ?: ""
             )
+            messagingTemplate.convertAndSendToUser(userNameKey, "/queue/ack", ack)
+
+        } catch (ex: Exception) {
             throw ex
         }
     }

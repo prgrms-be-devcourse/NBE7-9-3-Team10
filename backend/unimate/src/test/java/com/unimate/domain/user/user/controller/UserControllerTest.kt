@@ -101,8 +101,8 @@ class UserControllerTest {
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.name").value("새로운이름"))
 
-        val updated = userRepository.findByEmail(testEmail).orElseThrow()
-        assertThat(updated.name).isEqualTo("새로운이름")
+        val updated = userRepository.findByEmail(testEmail)
+        assertThat(updated?.name).isEqualTo("새로운이름")
     }
 
     @Test
@@ -126,8 +126,8 @@ class UserControllerTest {
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.email").value(newEmail))
 
-        val updated = userRepository.findByEmail(newEmail).orElseThrow()
-        assertThat(updated.email).isEqualTo(newEmail)
+        val updated = userRepository.findByEmail(newEmail)
+        assertThat(updated?.email).isEqualTo(newEmail)
     }
 
     @Test
