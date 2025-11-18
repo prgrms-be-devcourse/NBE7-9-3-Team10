@@ -87,7 +87,7 @@ class UserAuthControllerTest {
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.email").value(testEmail))
 
-        assertThat(userRepository.findByEmail(testEmail)).isPresent
+        assertThat(userRepository.findByEmail(testEmail))
     }
 
     @Test
