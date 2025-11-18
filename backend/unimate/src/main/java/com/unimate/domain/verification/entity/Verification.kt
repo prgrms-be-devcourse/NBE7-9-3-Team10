@@ -20,13 +20,6 @@ class Verification(
     var verifiedAt: LocalDateTime? = null
 ) : BaseEntity() {
 
-    // Java 테스트 호환을 위한 보조 생성자
-    constructor(email: String, code: String, expiresAt: LocalDateTime)
-            : this(email, code, expiresAt, null)
-
-    // JPA를 위한 protected 기본 생성자
-    protected constructor() : this("", "", LocalDateTime.now(), null)
-
     val isVerified: Boolean
         get() = verifiedAt != null
 

@@ -57,7 +57,7 @@ class UserAuthControllerTest {
 
         // 인증 코드 확인
         val verification = verificationRepository.findByEmail(testEmail)
-            .orElseThrow { IllegalStateException("인증 요청이 저장되지 않았습니다.") }
+            ?: throw IllegalStateException("인증 요청이 저장되지 않았습니다.")
 
         mockMvc.perform(
             post("$baseUrl/email/verify")
