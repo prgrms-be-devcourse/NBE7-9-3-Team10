@@ -8,20 +8,18 @@ fun httpOnlyCookie(
     maxAgeSeconds: Long,
     secure: Boolean,
     sameSite: String
-): ResponseCookie {
-    return ResponseCookie.from(name, value)
+): ResponseCookie =
+    ResponseCookie.from(name, value)
         .httpOnly(true)
         .secure(secure)
         .path("/")
         .sameSite(sameSite)
         .maxAge(maxAgeSeconds)
         .build()
-}
 
 fun expireCookie(
     name: String,
     secure: Boolean,
     sameSite: String
-): ResponseCookie {
-    return httpOnlyCookie(name, "", 0, secure, sameSite)
-}
+): ResponseCookie =
+    httpOnlyCookie(name, "", 0, secure, sameSite)

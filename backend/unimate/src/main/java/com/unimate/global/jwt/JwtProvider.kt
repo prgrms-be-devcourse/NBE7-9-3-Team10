@@ -15,7 +15,9 @@ import javax.crypto.SecretKey
 @Component
 class JwtProvider {
 
-    private val log = LoggerFactory.getLogger(JwtProvider::class.java)
+    companion object {
+        private val log = LoggerFactory.getLogger(JwtProvider::class.java)
+    }
 
     @Value("\${jwt.secret}")
     private lateinit var secretKey: String
@@ -67,14 +69,12 @@ class JwtProvider {
         return false
     }
 
-    fun getEmailFromToken(token: String): String {
-        val claims = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).payload
-        return claims.subject
-    }
+    fun getEmailFromToken(token: String): String =
+        Jwts.parser().verifyWith(key).build().parseSignedClaims(token).payload.subject
 
     fun getUserIdFromToken(token: String): Long {
-        val claims = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).payload
-        val userId = claims.get("userId", Number::class.java)
+        val userId = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).payload
+            .get("userId", Number::class.java)
         return userId.toLong()
     }
 }

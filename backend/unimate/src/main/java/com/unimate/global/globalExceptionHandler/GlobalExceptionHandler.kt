@@ -18,19 +18,21 @@ data class ErrorResponse(
 @RestControllerAdvice
 class GlobalExceptionHandler {
 
-    private val log = LoggerFactory.getLogger(GlobalExceptionHandler::class.java)
+    companion object {
+        private val log = LoggerFactory.getLogger(GlobalExceptionHandler::class.java)
+    }
 
     @ExceptionHandler(ServiceException::class)
     fun handleServiceException(ex: ServiceException): ResponseEntity<ErrorResponse> {
         log.warn("[ServiceException] {} - {}", ex.errorCode, ex.message)
 
-        val response = ErrorResponse(
-            status = ex.status.value(),
-            error = ex.errorCode,
-            message = ex.message ?: "메세지가 없습니다."
+        return ResponseEntity.status(ex.status).body(
+            ErrorResponse(
+                status = ex.status.value(),
+                error = ex.errorCode,
+                message = ex.message ?: "메세지가 없습니다."
+            )
         )
-
-        return ResponseEntity.status(ex.status).body(response)
     }
 
     @ExceptionHandler(MethodArgumentNotValidException::class)
@@ -43,25 +45,25 @@ class GlobalExceptionHandler {
 
         log.warn("[ValidationException] {}", errorMessage)
 
-        val response = ErrorResponse(
-            status = 400,
-            error = "BAD_REQUEST",
-            message = errorMessage
+        return ResponseEntity.badRequest().body(
+            ErrorResponse(
+                status = 400,
+                error = "BAD_REQUEST",
+                message = errorMessage
+            )
         )
-
-        return ResponseEntity.badRequest().body(response)
     }
 
     @ExceptionHandler(Exception::class)
     fun handleUnexpected(ex: Exception): ResponseEntity<ErrorResponse> {
         log.error("Unexpected error: {}", ex.message, ex)
 
-        val response = ErrorResponse(
-            status = 500,
-            error = "INTERNAL_SERVER_ERROR",
-            message = ex.message ?: "알 수 없는 오류가 발생했습니다."
+        return ResponseEntity.internalServerError().body(
+            ErrorResponse(
+                status = 500,
+                error = "INTERNAL_SERVER_ERROR",
+                message = ex.message ?: "알 수 없는 오류가 발생했습니다."
+            )
         )
-
-        return ResponseEntity.internalServerError().body(response)
     }
 }
