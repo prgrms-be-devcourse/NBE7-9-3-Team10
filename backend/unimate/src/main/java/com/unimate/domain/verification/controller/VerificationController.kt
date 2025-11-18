@@ -4,23 +4,35 @@ import com.unimate.domain.verification.dto.EmailCodeVerifyRequest
 import com.unimate.domain.verification.dto.EmailVerificationRequest
 import com.unimate.domain.verification.service.VerificationService
 import com.unimate.global.auth.dto.MessageResponse
+import com.unimate.global.school.dto.SchoolDomainResponse
+import com.unimate.global.school.service.SchoolService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.annotation.Validated
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/api/v1/email")
 @Validated
 @Tag(name = "VerificationController", description = "이메일 인증 API")
 class VerificationController(
-    private val verificationService: VerificationService
+    private val verificationService: VerificationService,
+    private val schoolService: SchoolService
 ) {
+
+    @GetMapping("/school-domain")
+    @Operation(summary = "학교명으로 도메인 조회")
+    fun getSchoolDomain(@RequestParam schoolName: String): ResponseEntity<SchoolDomainResponse> {
+        val domain = schoolService.getPrimarySchoolDomain(schoolName)
+
+        return if (domain != null) {
+            ResponseEntity.ok(SchoolDomainResponse(domain))
+        } else {
+            ResponseEntity.badRequest().body(SchoolDomainResponse(null))
+        }
+    }
 
     @PostMapping("/request")
     @Operation(summary = "이메일 인증번호 전송")

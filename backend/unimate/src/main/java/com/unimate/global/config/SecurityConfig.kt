@@ -49,7 +49,8 @@ class SecurityConfig(
                         "/v3/api-docs/**",       // <- JSON 문서
                         "/swagger-ui/**",        // <- UI
                         "/swagger-ui.html",      // <- 직접 접근 시
-                        "/css/**", "/js/**", "/images/**", "/webjars/**"  // 임시용
+                        "/css/**", "/js/**", "/images/**", "/webjars/**",  // 임시용
+                        "/api/v1/admin/school/*"
                     ).permitAll()
                     .anyRequest().authenticated()
             }
@@ -59,21 +60,21 @@ class SecurityConfig(
     }
 
     @Bean
-    fun passwordEncoder(): BCryptPasswordEncoder {
-        return BCryptPasswordEncoder()
-    }
+    fun passwordEncoder(): BCryptPasswordEncoder =
+        BCryptPasswordEncoder()
 
     @Bean
-    fun corsConfigurationSource(): CorsConfigurationSource {
-        val configuration = CorsConfiguration()
-        configuration.allowedOrigins = listOf("http://localhost:3000")
-        configuration.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
-        configuration.allowedHeaders = listOf("*")
-        configuration.allowCredentials = true
-        configuration.maxAge = 3600L
-
-        val source = UrlBasedCorsConfigurationSource()
-        source.registerCorsConfiguration("/**", configuration)
-        return source
-    }
+    fun corsConfigurationSource(): CorsConfigurationSource =
+        UrlBasedCorsConfigurationSource().apply {
+            registerCorsConfiguration(
+                "/**",
+                CorsConfiguration().apply {
+                    allowedOrigins = listOf("http://localhost:3000")
+                    allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
+                    allowedHeaders = listOf("*")
+                    allowCredentials = true
+                    maxAge = 3600L
+                }
+            )
+        }
 }
