@@ -17,8 +17,7 @@ import org.springframework.http.MediaType
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
@@ -35,22 +34,26 @@ class UserProfileControllerTest(
     @Autowired val passwordEncoder: BCryptPasswordEncoder
 ) {
     //---------------------- FIXTURE ------------------------------
-    val email = "tester@test.ac.kr"
-    val rawPassword = "test1234"
+    companion object {
+        private const val TEST_EMAIL = "tester@test.ac.kr"
+        private const val TEST_PASSWORD = "test1234"
+        private const val TEST_NAME = "테스트유저"
+        private const val TEST_UNIVERSITY = "서울대"
+    }
 
     @BeforeEach
     fun setUp() {
         // 이미 존재하면 중복 생성 방지
-        userRepository.findByEmail(email).ifPresent { userRepository.delete(it) }
+        userRepository.findByEmail(TEST_EMAIL)?.let { userRepository.delete(it) }
 
         val user = User(
-            "테스트유저",
-            email,
-            passwordEncoder.encode(rawPassword),
+            TEST_NAME,
+            TEST_EMAIL,
+            passwordEncoder.encode(TEST_PASSWORD),
             Gender.MALE,
             LocalDate.of(1991, 1, 1),
-            "서울대"
-        ).apply { verifyStudent() }
+            TEST_UNIVERSITY
+        ).apply { studentVerified = true }
 
         userRepository.save(user)
 
@@ -59,11 +62,11 @@ class UserProfileControllerTest(
     }
 
     //---------------------- HELPER -------------------------------
-    fun loginAndGetAccessToken(): String {
+    private fun loginAndGetAccessToken(): String {
         val body = """
             {
-                "email":"$email",
-                "password":"$rawPassword"
+                "email":"$TEST_EMAIL",
+                "password":"$TEST_PASSWORD"
             }
         """.trimIndent()
 
@@ -80,14 +83,14 @@ class UserProfileControllerTest(
 
         val token = objectMapper.readTree(json).path("accessToken").asText(null)
         assertThat(token)
-            .`as`("login accessToken null")
+            .`as`("AccessToken should not be null or blank")
             .isNotBlank
         return requireNotNull(token) { "AccessToken이 null입니다." }
     }
 
-    fun String.bearer() = "Bearer $this"
+    private fun String.bearer() = "Bearer $this"
 
-    fun sampleCreateReq() = ProfileCreateRequest(
+    private fun sampleCreateReq() = ProfileCreateRequest(
         sleepTime = 1,
         isPetAllowed = true,
         isSmoker = false,
@@ -100,63 +103,77 @@ class UserProfileControllerTest(
         guestFrequency = 1,
         mbti = "INFP",
         startUseDate = LocalDate.now(),
-        endUseDate = LocalDate.now(),
+        endUseDate = LocalDate.now().plusMonths(6),
         matchingEnabled = false
     )
 
-    fun sampleUpdateReq() = ProfileCreateRequest(
-        sleepTime = 1,
+    private fun sampleUpdateReq() = ProfileCreateRequest(
+        sleepTime = 2,
         isPetAllowed = false,
         isSmoker = false,
-        cleaningFrequency = 2,
-        preferredAgeGap = 3,
+        cleaningFrequency = 3,
+        preferredAgeGap = 5,
         hygieneLevel = 1,
         isSnoring = false,
-        drinkingFrequency = 2,
+        drinkingFrequency = 3,
         noiseSensitivity = 4,
-        guestFrequency = 1,
+        guestFrequency = 2,
         mbti = "ENTP",
         startUseDate = LocalDate.now(),
-        endUseDate = LocalDate.now(),
-        matchingEnabled = false
+        endUseDate = LocalDate.now().plusMonths(6),
+        matchingEnabled = true
     )
 
     //---------------------- TEST CODE ----------------------------
     @Test
     @DisplayName("프로필 생성 성공 테스트")
     fun `프로필 생성 성공`() {
+        // given
         val token = loginAndGetAccessToken()
+        val request = sampleCreateReq()
+        val requestJson = objectMapper.writeValueAsString(request)
 
-        val reqJson = objectMapper.writeValueAsString(sampleCreateReq())
-        val resJson = mockMvc.perform(
+        // when
+        val responseJson = mockMvc.perform(
             post("/api/v1/profile")
                 .header("Authorization", token.bearer())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(reqJson)
+                .content(requestJson)
         )
             .andExpect(status().isCreated)
             .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.id").exists())
+            .andExpect(jsonPath("$.sleepTime").value(request.sleepTime))
+            .andExpect(jsonPath("$.isPetAllowed").value(request.isPetAllowed))
+            .andExpect(jsonPath("$.mbti").value(request.mbti))
             .andReturn()
             .response
             .contentAsString
 
-        val node = objectMapper.readTree(resJson)
-        val profileId = node.get("id").asLong()
+        // then
+        val responseNode = objectMapper.readTree(responseJson)
+        val profileId = responseNode.get("id").asLong()
 
-        // 검증은 id만 확인해보기
         assertThat(profileId).isPositive()
-        assertThat(userProfileRepository.findById(profileId)).isPresent
+        assertThat(userProfileRepository.findById(profileId))
+            .isPresent
+            .hasValueSatisfying { profile ->
+                assertThat(profile.sleepTime).isEqualTo(request.sleepTime)
+                assertThat(profile.isPetAllowed).isEqualTo(request.isPetAllowed)
+                assertThat(profile.mbti).isEqualTo(request.mbti)
+            }
     }
 
     @Test
-    @DisplayName("프로필 수정 성공 테스트")
-    fun `프로필 수정 성공`() {
+    @DisplayName("프로필 조회 성공 테스트")
+    fun `프로필 조회 성공`() {
+        // given
         val token = loginAndGetAccessToken()
+        val request = sampleCreateReq()
 
-        // 생성
-        val createJson = objectMapper.writeValueAsString(sampleCreateReq())
-        val created = mockMvc.perform(
+        // 프로필 생성
+        val createJson = objectMapper.writeValueAsString(request)
+        val createdResponse = mockMvc.perform(
             post("/api/v1/profile")
                 .header("Authorization", token.bearer())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -167,28 +184,162 @@ class UserProfileControllerTest(
             .response
             .contentAsString
 
-        val id = objectMapper.readTree(created).get("id").asLong()
+        val profileId = objectMapper.readTree(createdResponse).get("id").asLong()
 
-        // 수정
-        val updateJson = objectMapper.writeValueAsString(sampleUpdateReq())
+        // when & then
+        mockMvc.perform(
+            get("/api/v1/profile")
+                .header("Authorization", token.bearer())
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.id").value(profileId))
+            .andExpect(jsonPath("$.sleepTime").value(request.sleepTime))
+            .andExpect(jsonPath("$.isPetAllowed").value(request.isPetAllowed))
+            .andExpect(jsonPath("$.mbti").value(request.mbti))
+            .andExpect(jsonPath("$.createdAt").exists())
+    }
 
-        val updated = mockMvc.perform(
+    @Test
+    @DisplayName("프로필 수정 성공 테스트")
+    fun `프로필 수정 성공`() {
+        // given
+        val token = loginAndGetAccessToken()
+
+        // 프로필 생성
+        val createJson = objectMapper.writeValueAsString(sampleCreateReq())
+        val createdResponse = mockMvc.perform(
+            post("/api/v1/profile")
+                .header("Authorization", token.bearer())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(createJson)
+        )
+            .andExpect(status().isCreated)
+            .andReturn()
+            .response
+            .contentAsString
+
+        val profileId = objectMapper.readTree(createdResponse).get("id").asLong()
+
+        // 프로필 수정
+        val updateRequest = sampleUpdateReq()
+        val updateJson = objectMapper.writeValueAsString(updateRequest)
+
+        // when
+        val updatedResponse = mockMvc.perform(
             put("/api/v1/profile")
                 .header("Authorization", token.bearer())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(updateJson)
         )
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.id").value(id))
+            .andExpect(jsonPath("$.id").value(profileId))
+            .andExpect(jsonPath("$.sleepTime").value(updateRequest.sleepTime))
+            .andExpect(jsonPath("$.isPetAllowed").value(updateRequest.isPetAllowed))
+            .andExpect(jsonPath("$.hygieneLevel").value(updateRequest.hygieneLevel))
+            .andExpect(jsonPath("$.mbti").value(updateRequest.mbti))
+            .andExpect(jsonPath("$.matchingEnabled").value(updateRequest.matchingEnabled))
             .andReturn()
             .response
             .contentAsString
 
-        // 검증
-        val node = objectMapper.readTree(updated)
-        assertThat(node.get("sleepTime").asInt()).isEqualTo(1)
-        assertThat(node.get("isPetAllowed").asBoolean()).isEqualTo(false)
-        assertThat(node.get("mbti").asText()).isEqualTo("ENTP")
+        // then
+        val responseNode = objectMapper.readTree(updatedResponse)
+        assertThat(responseNode.get("sleepTime").asInt()).isEqualTo(updateRequest.sleepTime)
+        assertThat(responseNode.get("isPetAllowed").asBoolean()).isEqualTo(updateRequest.isPetAllowed)
+        assertThat(responseNode.get("hygieneLevel").asInt()).isEqualTo(updateRequest.hygieneLevel)
+        assertThat(responseNode.get("mbti").asText()).isEqualTo(updateRequest.mbti)
+
+        // DB에서도 확인
+        val updatedProfile = userProfileRepository.findById(profileId).orElseThrow()
+        assertThat(updatedProfile.sleepTime).isEqualTo(updateRequest.sleepTime)
+        assertThat(updatedProfile.isPetAllowed).isEqualTo(updateRequest.isPetAllowed)
+        assertThat(updatedProfile.hygieneLevel).isEqualTo(updateRequest.hygieneLevel)
+        assertThat(updatedProfile.mbti).isEqualTo(updateRequest.mbti)
+    }
+
+    @Test
+    @DisplayName("인증 없이 프로필 생성 시 401 반환")
+    fun `인증 없이 프로필 생성 시 실패`() {
+        // given
+        val request = sampleCreateReq()
+        val requestJson = objectMapper.writeValueAsString(request)
+
+        // when & then
+        mockMvc.perform(
+            post("/api/v1/profile")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestJson)
+        )
+            .andExpect(status().isUnauthorized)
+    }
+
+    @Test
+    @DisplayName("잘못된 토큰으로 프로필 조회 시 401 반환")
+    fun `잘못된 토큰으로 프로필 조회 시 실패`() {
+        // when & then
+        mockMvc.perform(
+            get("/api/v1/profile")
+                .header("Authorization", "Bearer invalid-token")
+        )
+            .andExpect(status().isUnauthorized)
+    }
+
+    @Test
+    @DisplayName("프로필이 없는 상태에서 조회 시 404 반환")
+    fun `프로필이 없는 상태에서 조회 시 실패`() {
+        // given
+        val token = loginAndGetAccessToken()
+
+        // when & then
+        mockMvc.perform(
+            get("/api/v1/profile")
+                .header("Authorization", token.bearer())
+        )
+            .andExpect(status().isNotFound)
+    }
+
+    @Test
+    @DisplayName("프로필이 없는 상태에서 수정 시 실패")
+    fun `프로필이 없는 상태에서 수정 시 실패`() {
+        // given
+        val token = loginAndGetAccessToken()
+        val updateJson = objectMapper.writeValueAsString(sampleUpdateReq())
+
+        // when & then
+        mockMvc.perform(
+            put("/api/v1/profile")
+                .header("Authorization", token.bearer())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(updateJson)
+        )
+            .andExpect(status().isNotFound)
+    }
+
+    @Test
+    @DisplayName("이미 프로필이 있는 상태에서 중복 생성 시 실패")
+    fun `프로필 중복 생성 시 실패`() {
+        // given
+        val token = loginAndGetAccessToken()
+        val requestJson = objectMapper.writeValueAsString(sampleCreateReq())
+
+        // 첫 번째 프로필 생성
+        mockMvc.perform(
+            post("/api/v1/profile")
+                .header("Authorization", token.bearer())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestJson)
+        )
+            .andExpect(status().isCreated)
+
+        // when & then - 두 번째 프로필 생성 시도
+        mockMvc.perform(
+            post("/api/v1/profile")
+                .header("Authorization", token.bearer())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestJson)
+        )
+            .andExpect(status().isBadRequest)
     }
 }
 
