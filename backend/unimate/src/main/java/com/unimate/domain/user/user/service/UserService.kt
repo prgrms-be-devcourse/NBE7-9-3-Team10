@@ -43,7 +43,7 @@ class UserService(
         val user = findByEmail(currentEmail)
 
         val verification = verificationRepository.findByEmail(req.newEmail)
-            .orElseThrow{ ServiceException.badRequest("인증 요청이 존재하지 않습니다.") }
+            ?: throw  ServiceException.badRequest("인증 요청이 존재하지 않습니다.")
 
         if (!verification.isVerified) {
             throw ServiceException.badRequest("이메일 인증이 완료되지 않았습니다.")

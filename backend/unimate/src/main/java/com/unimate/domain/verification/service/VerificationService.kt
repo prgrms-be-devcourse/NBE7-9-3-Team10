@@ -18,7 +18,9 @@ class VerificationService(
     private val codeGenerator: VerificationCodeGenerator
 ) {
 
-    private val log = LoggerFactory.getLogger(VerificationService::class.java)
+    companion object {
+        private val log = LoggerFactory.getLogger(VerificationService::class.java)
+    }
 
     @Transactional
     fun sendVerificationCode(email: String) {
@@ -29,11 +31,12 @@ class VerificationService(
         val code = codeGenerator.generate6Digits()
         val expiresAt = LocalDateTime.now().plusMinutes(10)
 
-        verificationRepository.findByEmail(email)
-            .ifPresentOrElse(
-                { v -> v.updateCode(code, expiresAt) },
-                { verificationRepository.save(Verification(email, code, expiresAt)) }
-            )
+        val verification = verificationRepository.findByEmail(email)
+        if (verification != null) {
+            verification.updateCode(code, expiresAt)
+        } else {
+            verificationRepository.save(Verification(email, code, expiresAt))
+        }
 
         // emailService.sendVerificationEmail(email, code)
         /*
@@ -46,7 +49,7 @@ class VerificationService(
     @Transactional
     fun verifyCode(email: String, code: String) {
         val v = verificationRepository.findByEmail(email)
-            .orElseThrow { ServiceException.notFound("인증 요청 기록이 없습니다.") }
+            ?: throw ServiceException.notFound("인증 요청 기록이 없습니다.")
 
         if (v.isExpired) {
             throw ServiceException.badRequest("인증코드가 만료되었습니다.")
@@ -62,7 +65,7 @@ class VerificationService(
 
     fun assertVerifiedEmailOrThrow(email: String) {
         val v = verificationRepository.findByEmail(email)
-            .orElseThrow { ServiceException.badRequest("이메일 인증이 필요합니다.") }
+            ?: throw ServiceException.badRequest("이메일 인증이 필요합니다.")
 
         if (!v.isVerified) {
             throw ServiceException.badRequest("이메일 인증이 완료되지 않았습니다.")
