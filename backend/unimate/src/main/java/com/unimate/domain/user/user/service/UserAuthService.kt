@@ -13,7 +13,6 @@ import com.unimate.global.exception.ServiceException
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.function.Supplier
 
 @Service
 class UserAuthService(
@@ -24,47 +23,53 @@ class UserAuthService(
 ) {
 
     @Transactional
-    fun signup(req: UserSignupRequest): UserSignupResponse {
-        if (userRepository.existsByEmail(req.email)) {
+    fun signup(request: UserSignupRequest): UserSignupResponse {
+        if (userRepository.existsByEmail(request.email)) {
             throw ServiceException.conflict("이미 가입된 이메일입니다.")
         }
 
-        verificationService.assertVerifiedEmailOrThrow(req.email)
+        verificationService.assertVerifiedEmailOrThrow(request.email)
 
         val user = User(
-            req.name,
-            req.email,
-            passwordEncoder.encode(req.password),
-            req.gender,
-            req.birthDate,
-            req.university
+            request.name,
+            request.email,
+            passwordEncoder.encode(request.password),
+            request.gender,
+            request.birthDate,
+            request.university
         )
-        user.verifyStudent()
+        user.studentVerified = true
 
         val savedUser = userRepository.save(user)
-        verificationService.consumeVerification(req.email)
+        verificationService.consumeVerification(request.email)
 
-        val userId = requireNotNull(savedUser.id) { "저장된 사용자의 ID가 null입니다." }
 
-        return UserSignupResponse(userId, savedUser.email, savedUser.name)
+        return UserSignupResponse(
+            savedUser.id ?: throw ServiceException.internalServerError("저장된 사용자의 ID가 null입니다."),
+            savedUser.email,
+            savedUser.name
+        )
     }
 
     @Transactional
-    fun login(req: UserLoginRequest): Tokens {
-        val user = userRepository.findByEmail(req.email)
-            .orElseThrow<ServiceException?>(Supplier { ServiceException.unauthorized("이메일이 일치하지 않습니다.") })
+    fun login(request: UserLoginRequest): Tokens {
+        val user = userRepository.findByEmail(request.email)
+            ?: throw ServiceException.unauthorized("이메일이 일치하지 않습니다.")
 
-        if (!passwordEncoder.matches(req.password, user.password)) {
+        if (!passwordEncoder.matches(request.password, user.password)) {
             throw ServiceException.unauthorized("비밀번호가 일치하지 않습니다.")
         }
 
-        return tokenService.issueTokens(SubjectType.USER, user.id!!, user.email)
+        return tokenService.issueTokens(
+            SubjectType.USER,
+            user.id ?: throw ServiceException.internalServerError("사용자 ID가 null입니다."),
+            user.email
+        )
     }
 
     @Transactional(readOnly = true)
-    fun reissueAccessToken(refreshToken: String): String {
-        return tokenService.reissueAccessToken(refreshToken)
-    }
+    fun reissueAccessToken(refreshToken: String): String =
+        tokenService.reissueAccessToken(refreshToken)
 
     @Transactional
     fun logout(refreshToken: String) {

@@ -8,4 +8,5 @@ interface UserProfileRepository : JpaRepository<UserProfile, Long> {
     fun findByUserEmail(email: String): Optional<UserProfile>
     fun findByUserId(userId: Long): Optional<UserProfile>
     fun deleteByUserId(userId: Long)
+    fun existsByUserEmail(email: String): Boolean
 }
