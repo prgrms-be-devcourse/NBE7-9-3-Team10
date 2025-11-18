@@ -5,7 +5,6 @@ import com.unimate.domain.verification.repository.VerificationRepository
 import com.unimate.global.exception.ServiceException
 import com.unimate.global.mail.EmailService
 import com.unimate.global.util.VerificationCodeGenerator
-import com.unimate.global.util.isSchoolEmail
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -18,31 +17,21 @@ class VerificationService(
     private val codeGenerator: VerificationCodeGenerator
 ) {
 
-    companion object {
-        private val log = LoggerFactory.getLogger(VerificationService::class.java)
-    }
+    private val log = LoggerFactory.getLogger(VerificationService::class.java)
 
     @Transactional
     fun sendVerificationCode(email: String) {
-        if (!isSchoolEmail(email)) {
-            throw ServiceException.badRequest("학교 이메일만 인증 가능합니다.")
-        }
-
         val code = codeGenerator.generate6Digits()
         val expiresAt = LocalDateTime.now().plusMinutes(10)
 
-        val verification = verificationRepository.findByEmail(email)
-        if (verification != null) {
-            verification.updateCode(code, expiresAt)
+        val existingVerification = verificationRepository.findByEmail(email)
+
+        if (existingVerification != null) {
+            existingVerification.updateCode(code, expiresAt)
         } else {
             verificationRepository.save(Verification(email, code, expiresAt))
         }
 
-        // emailService.sendVerificationEmail(email, code)
-        /*
-        이메일 실제로 보내는 부분 임시 비활성화
-        실제로 이메일이 가지 않지만 모든 기능 동일하게 작동합니다
-        */
         log.info("[인증코드 발송 완료] email={}, code={}", email, code)
     }
 

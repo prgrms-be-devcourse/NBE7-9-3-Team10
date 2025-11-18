@@ -26,7 +26,7 @@ class UserAuthService(
     @Transactional
     fun signup(req: UserSignupRequest): UserSignupResponse {
         if (userRepository.existsByEmail(req.email)) {
-            throw ServiceException.badRequest("이미 가입된 이메일입니다.")
+            throw ServiceException.conflict("이미 가입된 이메일입니다.")
         }
 
         verificationService.assertVerifiedEmailOrThrow(req.email)
@@ -52,10 +52,10 @@ class UserAuthService(
     @Transactional
     fun login(req: UserLoginRequest): Tokens {
         val user = userRepository.findByEmail(req.email)
-            .orElseThrow<ServiceException?>(Supplier { ServiceException.notFound("이메일을 찾을 수 없습니다.") })
+            .orElseThrow<ServiceException?>(Supplier { ServiceException.unauthorized("이메일 또는 비밀번호가 일치하지 않습니다.") })
 
         if (!passwordEncoder.matches(req.password, user.password)) {
-            throw ServiceException.unauthorized("비밀번호가 일치하지 않습니다.")
+            throw ServiceException.unauthorized("이메일 또는 비밀번호가 일치하지 않습니다.")
         }
 
         return tokenService.issueTokens(SubjectType.USER, user.id!!, user.email)

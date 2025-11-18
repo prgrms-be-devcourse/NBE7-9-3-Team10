@@ -2,8 +2,10 @@ package com.unimate.global.globalExceptionHandler
 
 import com.unimate.global.exception.ServiceException
 import org.slf4j.LoggerFactory
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.MethodArgumentNotValidException
+import org.springframework.web.bind.MissingRequestCookieException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import java.time.LocalDateTime
@@ -65,5 +67,17 @@ class GlobalExceptionHandler {
                 message = ex.message ?: "알 수 없는 오류가 발생했습니다."
             )
         )
+    }
+
+    @ExceptionHandler(MissingRequestCookieException::class)
+    fun handleMissingRequestCookie(ex: MissingRequestCookieException): ResponseEntity<ErrorResponse> {
+        log.warn("Missing required cookie: ${ex.message}")
+        return ResponseEntity
+            .badRequest()
+            .body(ErrorResponse(
+                status = HttpStatus.BAD_REQUEST.value(),
+                error = "BAD_REQUEST",
+                message = "필수 쿠키가 없습니다"
+            ))
     }
 }
