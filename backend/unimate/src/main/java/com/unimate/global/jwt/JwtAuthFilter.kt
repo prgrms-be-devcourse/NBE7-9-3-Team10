@@ -44,13 +44,11 @@ class JwtAuthFilter(
         authentication.details = WebAuthenticationDetailsSource().buildDetails(request)
         SecurityContextHolder.getContext().authentication = authentication
 
-
         filterChain.doFilter(request, response)
     }
 
-    private fun resolveToken(request: HttpServletRequest): String? {
-        return request.getHeader("Authorization")
-            ?.takeIf {it.startsWith("Bearer ")}
+    private fun resolveToken(request: HttpServletRequest): String? =
+        request.getHeader("Authorization")
+            ?.takeIf { it.startsWith("Bearer ") }
             ?.substring(7)
-    }
 }
