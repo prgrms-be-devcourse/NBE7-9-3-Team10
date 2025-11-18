@@ -134,7 +134,7 @@ class MatchCacheService(
         log.info("유저 프로필 캐시 및 전체 후보 캐시 삭제 완료 (userId: {})", userId)
     }
 
-    // 여러 사용자의 캐시를 병렬로 삭제 (코루틴 사용)
+    // 여러 사용자의 캐시를 병렬로 삭제 (코루틴 쓰기 좋아보여서 만들어둠, 추후 사용자 일괄삭제 등에 사용)
     suspend fun evictMultipleUserProfilesAsync(userIds: List<Long>) = coroutineScope {
         val distinctIds = userIds.distinct()
         
