@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
-import { Star, MessageSquare, ThumbsUp, ThumbsDown, User, RefreshCw, Trash2, Edit2 } from "lucide-react"; // ✅ Edit2 추가
+import { Star, MessageSquare, ThumbsUp, ThumbsDown, User, RefreshCw, Trash2, Edit2 } from "lucide-react"; 
 import type { ReviewResponse } from "@/types/review";
 import { ReviewService } from "@/lib/services/reviewService";
 import { MatchService } from "@/lib/services/matchService";
@@ -43,11 +43,26 @@ export default function WrittenReviewList() {
                 return;
             }
 
+            let timeoutId: NodeJS.Timeout | null = null;
+            let isUnauthorized = false;
+
             try {
                 setLoading(true);
                 setError(null);
 
+                // 타임아웃 추가 (10초)
+                timeoutId = setTimeout(() => {
+                    setError("요청 시간이 초과되었습니다.");
+                    setLoading(false);
+                }, 10000);
+
                 const matchStatusResponse = await MatchService.getMatchStatus();
+                
+                if (timeoutId) {
+                    clearTimeout(timeoutId);
+                    timeoutId = null;
+                }
+                
                 const matches = matchStatusResponse.data?.matches || 
                                (matchStatusResponse as any)?.matches || 
                                matchStatusResponse.data || 
@@ -122,20 +137,49 @@ export default function WrittenReviewList() {
                             });
                         }
                     } catch (err: any) {
+                        if (err?.status === 401) {
+                            isUnauthorized = true;
+                            // api.ts 인터셉터에서 이미 리다이렉트 처리 중
+                            // 상태 업데이트하지 않고 리턴
+                            if (timeoutId) {
+                                clearTimeout(timeoutId);
+                            }
+                            return;
+                        }
                         console.error(`매칭 ${match.id} 처리 실패:`, err);
                     }
                 }
 
                 setMatchesWithReviews(matchesData);
             } catch (err: any) {
+                if (err?.status === 401) {
+                    // api.ts 인터셉터에서 이미 리다이렉트 처리 중
+                    // 상태 업데이트하지 않고 리턴
+                    if (timeoutId) {
+                        clearTimeout(timeoutId);
+                    }
+                    return;
+                }
+                
                 console.error("작성된 리뷰 조회 실패:", err);
                 setError(err.message || "리뷰를 불러오는 중 오류가 발생했습니다.");
             } finally {
-                setLoading(false);
+                if (timeoutId) {
+                    clearTimeout(timeoutId);
+                }
+                if (!isUnauthorized) {
+                    setLoading(false);
+                }
             }
         };
 
         fetchWrittenReviews();
+
+        return () => {
+            // cleanup은 비동기 함수 내부의 timeoutId에 접근할 수 없으므로
+            // 별도로 관리해야 하지만, 현재 구조에서는 fetchWrittenReviews가 완료되면
+            // 자동으로 정리되므로 큰 문제는 없음
+        };
     }, [user?.userId]);
 
     const handleRematch = async (matchId: number) => {
