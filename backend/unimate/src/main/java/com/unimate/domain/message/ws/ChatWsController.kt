@@ -18,15 +18,12 @@ import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.http.HttpStatus
 import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.messaging.handler.annotation.Payload
-import org.springframework.messaging.simp.SimpMessageHeaderAccessor
 import org.springframework.messaging.simp.SimpMessageSendingOperations
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.core.Authentication
 import org.springframework.stereotype.Controller
 import org.springframework.web.server.ResponseStatusException
-import java.security.Principal
 import java.time.format.DateTimeFormatter
-import java.util.Optional
 
 @Controller
 @Tag(name = "ChatWsController", description = "채팅방 WebSocket API")
@@ -47,10 +44,9 @@ class ChatWsController(
     @MessageMapping("/chat.send")
     fun sendMessage(
         @Payload req: WsSendMessageRequest,
-        principal: Optional<Principal>,
-        sha: SimpMessageHeaderAccessor?
+        authentication: Authentication
     ) {
-        val user = resolvePrincipal(principal.orElse(null), sha)
+        val user = (authentication.principal as? CustomUserPrincipal)
             ?: throw AccessDeniedException("인증되지 않은 사용자입니다.")
 
         val userId = user.userId
@@ -143,15 +139,5 @@ class ChatWsController(
         } catch (ex: Exception) {
             throw ex
         }
-    }
-
-    private fun resolvePrincipal(
-        principal: Principal?,
-        sha: SimpMessageHeaderAccessor?
-    ): CustomUserPrincipal? {
-        val direct = (principal as? Authentication)?.principal as? CustomUserPrincipal
-        if (direct != null) return direct
-
-        return (sha?.user as? Authentication)?.principal as? CustomUserPrincipal
     }
 }
