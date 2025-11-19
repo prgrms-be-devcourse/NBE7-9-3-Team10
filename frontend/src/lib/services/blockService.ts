@@ -1,16 +1,4 @@
 import { apiClient } from './api'
-import { ApiResponse } from '@/types/api'
-
-export interface BlockedUser {
-  userId: number
-  userName: string
-  blockedAt: string
-}
-
-export interface BlockStatus {
-  isBlocked: boolean
-  blockedAt?: string
-}
 
 /**
  * 사용자 차단 서비스
@@ -69,33 +57,6 @@ export class BlockService {
       
       const errorMessage = error.response?.data?.message || error.message || '차단 해제에 실패했습니다.'
       throw new Error(errorMessage)
-    }
-  }
-
-  /**
-   * 차단된 사용자 목록을 조회합니다
-   */
-  static async getBlockedUsers(): Promise<BlockedUser[]> {
-    try {
-      const response = await apiClient.get<ApiResponse<BlockedUser[]>>('/api/v1/users/me/blocked')
-      return response.data?.data || response.data || []
-    } catch (error: any) {
-      console.error('차단 목록 조회 실패:', error)
-      return []
-    }
-  }
-
-  /**
-   * 특정 사용자가 차단되었는지 확인합니다
-   * @param userId - 확인할 사용자 ID
-   */
-  static async isUserBlocked(userId: number): Promise<boolean> {
-    try {
-      const blockedUsers = await this.getBlockedUsers()
-      return blockedUsers.some(user => user.userId === userId)
-    } catch (error) {
-      console.error('차단 상태 확인 실패:', error)
-      return false
     }
   }
 

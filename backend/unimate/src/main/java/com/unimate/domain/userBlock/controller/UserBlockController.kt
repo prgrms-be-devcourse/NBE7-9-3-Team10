@@ -1,6 +1,5 @@
 package com.unimate.domain.userBlock.controller
 
-import com.unimate.domain.userBlock.dto.BlockedUserResponse
 import com.unimate.domain.userBlock.service.UserBlockService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
@@ -46,23 +45,5 @@ class UserBlockController(
         return ResponseEntity.ok().build()
     }
 
-    /**
-     * 차단 목록 조회
-     */
-    @GetMapping("/me/blocked")
-    @Operation(summary = "차단 목록 조회")
-    fun getBlockedUsers(
-        authentication: Authentication
-    ): ResponseEntity<List<BlockedUserResponse>> {
-        val currentUserId = authentication.name.toLong()
-        val blockedUsers = userBlockService.getBlockedUsers(currentUserId)
-        val response = blockedUsers.map {
-            BlockedUserResponse(
-                userId = it.blockedId,
-                blockedAt = it.blockedAt
-            )
-        }
-        return ResponseEntity.ok(response)
-    }
 }
 

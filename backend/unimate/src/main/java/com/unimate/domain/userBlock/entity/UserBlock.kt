@@ -1,7 +1,6 @@
 package com.unimate.domain.userBlock.entity
 
 import jakarta.persistence.*
-import java.time.LocalDateTime
 
 @Entity
 @Table(
@@ -21,9 +20,6 @@ class UserBlock(
     @Column(name = "blocked_id", nullable = false)
     val blockedId: Long,
 
-    @Column(name = "blocked_at", nullable = false)
-    val blockedAt: LocalDateTime = LocalDateTime.now(),
-
     @Column(name = "active", nullable = false)
     val active: Boolean = true
 ) {
@@ -32,7 +28,6 @@ class UserBlock(
         id = this.id,
         blockerId = this.blockerId,
         blockedId = this.blockedId,
-        blockedAt = this.blockedAt,
         active = false
     )
 }

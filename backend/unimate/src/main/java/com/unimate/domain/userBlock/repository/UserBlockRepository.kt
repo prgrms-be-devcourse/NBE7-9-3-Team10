@@ -14,5 +14,4 @@ interface UserBlockRepository : JpaRepository<UserBlock, Long> {
         blockedId: Long
     ): UserBlock?
 
-    fun findAllByBlockerIdAndActiveTrue(blockerId: Long): List<UserBlock>
 }

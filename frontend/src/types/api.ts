@@ -42,7 +42,6 @@ export const API_ENDPOINTS = {
   USER: '/api/v1/user',
   USER_PREFERENCES: '/api/v1/users/me/preferences',
   USER_DELETE_MATCHING_STATUS: "/api/v1/users/me/matching-status",
-  USER_BLOCKED: '/api/v1/users/me/blocked',
 
   // 매칭 관련
   MATCHES: '/api/v1/matches',
