@@ -21,6 +21,22 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+      mysql:
+        image: mysql:8.0.35
+        ports:
+          - 3306:3306
+        env:
+          MYSQL_ROOT_PASSWORD: rootpassword
+          MYSQL_DATABASE: unimate_test
+          MYSQL_USER: unimate
+          MYSQL_PASSWORD: unimatepassword
+        options: >-
+          --health-cmd "mysqladmin ping -h localhost -uroot -prootpassword"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+          --character-set-server=utf8mb4
+          --collation-server=utf8mb4_unicode_ci
 
     steps:
       - name: Checkout code
@@ -43,6 +59,10 @@ jobs:
       - name: Run tests
         run: ./gradlew test
         working-directory: backend/unimate
+        env:
+          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/unimate_test?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8
+          SPRING_DATASOURCE_USERNAME: unimate
+          SPRING_DATASOURCE_PASSWORD: unimatepassword
 
   frontend:
     name: Frontend Lint & Build

@@ -1,0 +1,32 @@
+# Gradle
+.gradle/
+build/
+out/
+bin/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Test files
+src/test/
+
+# H2 Database files
+*.mv.db
+*.trace.db
+db_*.mv.db
+db_*.trace.db
+
+# Application config (운영 환경에서는 별도로 주입)
+src/main/resources/application*.yml
+
