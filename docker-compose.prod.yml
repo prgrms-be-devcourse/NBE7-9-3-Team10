@@ -1,0 +1,139 @@
+version: '3.8'
+
+# 네트워크: 모든 서비스가 동일한 네트워크에서 통신
+networks:
+  unimate-network:
+    driver: bridge
+
+# 볼륨: 데이터 영구 저장
+volumes:
+  mysql-data:
+    driver: local
+  redis-data:
+    driver: local
+
+services:
+  # MySQL 데이터베이스
+  mysql:
+    image: mysql:8.0.35
+    container_name: unimate-mysql-prod
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: unimate_dev
+      MYSQL_USER: ${MYSQL_USER:-unimate}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-unimatepassword}
+      TZ: Asia/Seoul
+    volumes:
+      - mysql-data:/var/lib/mysql
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-authentication-plugin=mysql_native_password
+      - --max-connections=200
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-rootpassword}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - unimate-network
+
+  # Redis 캐시
+  redis:
+    image: redis:7-alpine
+    container_name: unimate-redis-prod
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - unimate-network
+
+  # Spring Boot Backend
+  backend:
+    build:
+      context: ./backend/unimate
+      dockerfile: Dockerfile
+    container_name: unimate-backend-prod
+    environment:
+      # Spring Profile
+      SPRING_PROFILES_ACTIVE: prod
+      
+      # MySQL 연결 정보 (컨테이너명 사용)
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/unimate_dev?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-unimate}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:-unimatepassword}
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
+      
+      # Redis 연결 정보 (컨테이너명 사용)
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      
+      # JWT 설정
+      JWT_SECRET: ${JWT_SECRET:-abcdefghijklmnopqrstuvwxyz1234567890abcdefghijklmnopqrstuvwxyz1234567890!}
+      JWT_ACCESS_TOKEN_EXPIRATION: ${JWT_ACCESS_TOKEN_EXPIRATION:-3600000}
+      JWT_REFRESH_TOKEN_EXPIRATION: ${JWT_REFRESH_TOKEN_EXPIRATION:-604800000}
+      
+      # Mail 설정 (필요시 .env에서 주입)
+      SPRING_MAIL_HOST: ${SPRING_MAIL_HOST:-smtp.gmail.com}
+      SPRING_MAIL_PORT: ${SPRING_MAIL_PORT:-587}
+      SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME:-ahnbs0@gmail.com}
+      SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD:-yxdf xbou eefl apvh}
+      
+      # JPA 설정
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "false"
+      
+      # Logging
+      LOGGING_LEVEL_ROOT: INFO
+      LOGGING_LEVEL_COM_UNIMATE: DEBUG
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - unimate-network
+
+  # Next.js Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: unimate-frontend-prod
+    environment:
+      # Backend API URL (내부 네트워크 사용)
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://backend:8080}
+      NEXT_PUBLIC_API_BASE: ${NEXT_PUBLIC_API_BASE:-http://backend:8080}
+      NODE_ENV: production
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - unimate-network
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: unimate-nginx-prod
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - frontend
+      - backend
+    restart: unless-stopped
+    networks:
+      - unimate-network
+

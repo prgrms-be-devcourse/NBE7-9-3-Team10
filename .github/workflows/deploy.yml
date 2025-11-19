@@ -1,0 +1,90 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - 'frontend/**'
+      - 'docker-compose.prod.yml'
+      - 'nginx/**'
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch:  # 수동 실행 가능
+
+jobs:
+  deploy:
+    name: Deploy to EC2
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_SSH_KEY }}
+
+      - name: Add EC2 to known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Copy files to EC2
+        run: |
+          # 프로젝트 디렉토리 생성
+          ssh ubuntu@${{ secrets.DEPLOY_HOST }} "mkdir -p /home/ubuntu/unimate"
+          
+          # 필요한 파일들 복사
+          scp docker-compose.prod.yml ubuntu@${{ secrets.DEPLOY_HOST }}:/home/ubuntu/unimate/
+          scp env.example ubuntu@${{ secrets.DEPLOY_HOST }}:/home/ubuntu/unimate/
+          scp -r backend ubuntu@${{ secrets.DEPLOY_HOST }}:/home/ubuntu/unimate/
+          scp -r frontend ubuntu@${{ secrets.DEPLOY_HOST }}:/home/ubuntu/unimate/
+          scp -r nginx ubuntu@${{ secrets.DEPLOY_HOST }}:/home/ubuntu/unimate/
+          scp -r scripts ubuntu@${{ secrets.DEPLOY_HOST }}:/home/ubuntu/unimate/
+
+      - name: Execute deployment script
+        run: |
+          ssh ubuntu@${{ secrets.DEPLOY_HOST }} << 'EOF'
+            cd /home/ubuntu/unimate
+            
+            # .env 파일이 없으면 env.example 복사 (첫 배포 시)
+            if [ ! -f .env ]; then
+              if [ -f env.example ]; then
+                cp env.example .env
+                echo "⚠️  .env 파일이 없어 env.example을 복사했습니다."
+                echo "⚠️  .env 파일을 수정한 후 수동으로 재배포하세요."
+              fi
+            fi
+            
+            # 배포 스크립트 실행 권한 부여
+            chmod +x scripts/deploy.sh
+            
+            # 배포 실행
+            ./scripts/deploy.sh
+          EOF
+
+      - name: Verify deployment
+        run: |
+          ssh ubuntu@${{ secrets.DEPLOY_HOST }} << 'EOF'
+            cd /home/ubuntu/unimate
+            
+            # 컨테이너 상태 확인
+            docker-compose -f docker-compose.prod.yml ps
+            
+            # 헬스체크
+            sleep 10
+            curl -f http://localhost/health || exit 1
+            echo "✅ 배포 검증 완료"
+          EOF
+
+      - name: Deployment notification
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ 배포 성공!"
+          else
+            echo "❌ 배포 실패!"
+          fi
+
