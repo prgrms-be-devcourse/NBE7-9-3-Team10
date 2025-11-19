@@ -67,4 +67,4 @@ build/
 *.mdc
 
 #=== custom ===
-/cache/*
+/backend/unimate/src/main/resources/cache/*
