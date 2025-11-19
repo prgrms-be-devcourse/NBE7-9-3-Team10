@@ -1,5 +1,6 @@
 package com.unimate.domain.match.entity
 
+import com.unimate.domain.review.entity.Review
 import com.unimate.domain.user.user.entity.User
 import com.unimate.global.entity.BaseEntity
 import jakarta.persistence.*
@@ -14,13 +15,14 @@ import java.time.LocalDateTime
     uniqueConstraints = [
         UniqueConstraint(
             name = "uk_match_sender_receiver",
-            columnNames = ["sender_id", "receiver_id"]
+            columnNames = ["sender_id", "receiver_id", "rematch_round"]
         )
     ]
 )
-// TODO: 후기(Review) 연동 시 재매칭 기능을 허용하기 위해
-// rematch_round 컬럼 활성화 및 유니크 제약 조건 확장 예정
-// 현재는 단일 매칭만 허용 (동일 조합 중복 금지)
+/**
+ * - Review와 연계하여 재매칭 기능
+ * - rematch_round를 통해 동일 사용자 간 여러 회차 매칭 가능
+ */
 class Match(
     // 사용자 관계
     @ManyToOne(fetch = FetchType.LAZY)
@@ -66,10 +68,15 @@ class Match(
     @Column(name = "confirmed_at")
     var confirmedAt: LocalDateTime? = null,
 
-    // 재매칭 회차 (현재 미사용, 향후 후기 시스템과 연계 시 활용)
+    // 재매칭 회차 (Review 시스템과 연계하여 재매칭 시 증가)
     @Column(name = "rematch_round", nullable = false)
     var rematchRound: Int = 0
 ) : BaseEntity() {
+
+    // 한 매칭에 여러 후기가 있을 수 있음 (양방향 후기)
+    @OneToMany(mappedBy = "match", fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = false)
+    var reviews: MutableList<Review> = mutableListOf()
+
 
     companion object {
         @JvmStatic
@@ -101,8 +108,27 @@ class Match(
                 preferenceScore = preferenceScore
             )
         }
-    }
 
+        @JvmStatic
+        fun createRematch(
+            sender: User,
+            receiver: User,
+            preferenceScore: BigDecimal,
+            rematchRound: Int
+        ): Match {
+            require(rematchRound > 0) {
+                "재매칭 회차는 1 이상이어야 합니다."
+            }
+            return Match(
+                sender = sender,
+                receiver = receiver,
+                matchType = MatchType.REQUEST,
+                matchStatus = MatchStatus.PENDING,
+                preferenceScore = preferenceScore,
+                rematchRound = rematchRound
+            )
+        }
+    }
 
     fun upgradeToRequest(requestSender: User, requestReceiver: User) {
         this.sender = requestSender
@@ -188,8 +214,18 @@ class Match(
         }
     }
 
-    // 재매칭 회차 설정 메서드
-    //  public void setRematchRound(Integer rematchRound) {
-    //      this.rematchRound = rematchRound;
-    //  }
+    /**
+     * 재매칭 여부 확인
+     */
+    fun isRematch(): Boolean {
+        return this.rematchRound > 0
+    }
+
+    /**
+     * 다음 재매칭 회차 계산
+     */
+    fun getNextRematchRound(): Int {
+        return this.rematchRound + 1
+    }
+
 }
