@@ -15,16 +15,22 @@ import { getErrorMessage } from '@/lib/utils/helpers'
 import type { MatchRecommendationDetailResponse } from '@/types/match'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import Link from 'next/link'
+import PendingReviewList from '@/components/review/PendingReviewList'
+import WrittenReviewList from '@/components/review/WrittenReviewList'
+import { Dialog, Transition } from '@headlessui/react'
+import { Fragment } from 'react'
 
 export default function AppHeader() {
   const router = useRouter()
   const pathname = usePathname()
   const [isNotificationOpen, setIsNotificationOpen] = useState(false)
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false)
+  const [reviewTab, setReviewTab] = useState<'pending' | 'written'>('pending')
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<MatchRecommendationDetailResponse | null>(null)
   const [isDetailLoading, setIsDetailLoading] = useState(false)
   const { notifications, unreadCount, markAsRead, deleteNotification, deleteAllNotifications, checkWebSocketStatus } = useNotifications()
-  const { success } = useToast()
+  const { success, error: showError } = useToast()
   const { isAuthenticated, isLoading, logout } = useAuth()
 
   const navigationItems = [
@@ -39,11 +45,9 @@ export default function AppHeader() {
       await stopWs()
       await logout()
       success('로그아웃되었습니다.', '로그아웃 완료')
-      // 로그아웃 후 홈화면으로 강제 이동
       window.location.href = '/'
     } catch (error) {
       success('로그아웃되었습니다.', '로그아웃 완료')
-      // 에러가 발생해도 홈화면으로 강제 이동
       window.location.href = '/'
     }
   }
@@ -61,7 +65,10 @@ export default function AppHeader() {
     } catch (err) {
       console.error('상세 정보 조회 실패:', err)
       setIsDetailLoading(false)
-      // 에러 발생 시 기존 방식으로 프로필 페이지로 이동
+      showError(
+        getErrorMessage(err) || "프로필 정보를 불러오는데 실패했습니다.",
+        "프로필 조회 실패"
+      )
       router.push(`/profile/${senderId}`)
     }
   }
@@ -90,7 +97,6 @@ export default function AppHeader() {
 
   const handleSendTestNotification = async () => {
     try {
-      // 현재 알림 목록 새로고침
       await NotificationService.getNotifications(0, 5)
       success('알림 목록을 새로고침했습니다. 다른 계정으로 알림을 생성해보세요.', '테스트 안내')
     } catch (error) {
@@ -172,16 +178,20 @@ export default function AppHeader() {
         </nav>
 
         <div className="flex items-center gap-4">
-          <div className="flex items-center">
+          {/* 별 아이콘 버튼 추가 */}
+          <button
+            onClick={() => setIsReviewModalOpen(true)}
+            className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+            title="후기"
+          >
             <Star className="w-5 h-5 text-[#F59E0B]" />
-          </div>
+          </button>
           
           <div className="relative flex items-center">
             <button
               onClick={() => setIsNotificationOpen(true)}
               className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
               title="알림"
-              className="flex items-center hover:bg-gray-100 rounded-lg transition-colors"
             >
               <Bell className="w-5 h-5 text-[#6B7280]" />
             </button>
@@ -201,6 +211,88 @@ export default function AppHeader() {
           </button>
         </div>
       </div>
+
+      {/* 후기 모달 추가 */}
+      <Transition appear show={isReviewModalOpen} as={Fragment}>
+        <Dialog as="div" className="relative z-50" onClose={() => setIsReviewModalOpen(false)}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            {/* 블러 처리 - 배경 투명도 낮춤 */}
+            <div className="fixed inset-0 bg-black/20 backdrop-blur-sm" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 overflow-hidden">
+            <div className="flex min-h-full items-start justify-end">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-in-out duration-500"
+                enterFrom="opacity-0 translate-x-full"
+                enterTo="opacity-100 translate-x-0"
+                leave="ease-in-out duration-300"
+                leaveFrom="opacity-100 translate-x-0"
+                leaveTo="opacity-0 translate-x-full"
+              >
+                <Dialog.Panel className="h-full w-full max-w-md bg-white shadow-2xl overflow-y-auto">
+                  <div className="sticky top-0 bg-white border-b border-gray-200 p-6 z-10">
+                    <div className="flex items-center justify-between mb-2">
+                      <Dialog.Title className="text-2xl font-bold text-gray-900">
+                        리뷰
+                      </Dialog.Title>
+                      <button
+                        onClick={() => setIsReviewModalOpen(false)}
+                        className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+                      >
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                    
+                    {/* 탭 추가 */}
+                    <div className="flex gap-2 mt-4 border-b border-gray-200">
+                      <button
+                        onClick={() => setReviewTab('pending')}
+                        className={`px-4 py-2 text-sm font-medium transition-colors ${
+                          reviewTab === 'pending'
+                            ? 'text-[#4F46E5] border-b-2 border-[#4F46E5]'
+                            : 'text-gray-500 hover:text-gray-700'
+                        }`}
+                      >
+                        대기 중인 리뷰
+                      </button>
+                      <button
+                        onClick={() => setReviewTab('written')}
+                        className={`px-4 py-2 text-sm font-medium transition-colors ${
+                          reviewTab === 'written'
+                            ? 'text-[#4F46E5] border-b-2 border-[#4F46E5]'
+                            : 'text-gray-500 hover:text-gray-700'
+                        }`}
+                      >
+                        작성된 리뷰
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="p-6">
+                    {reviewTab === 'pending' ? (
+                      <PendingReviewList />
+                    ) : (
+                      <WrittenReviewList />
+                    )}
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
 
       <NotificationModal
         isOpen={isNotificationOpen}
