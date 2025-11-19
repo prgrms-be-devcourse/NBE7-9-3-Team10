@@ -2,9 +2,10 @@ package com.unimate.domain.verification.controller
 
 import com.unimate.domain.verification.dto.EmailCodeVerifyRequest
 import com.unimate.domain.verification.dto.EmailVerificationRequest
+import com.unimate.domain.verification.dto.SchoolDomainResponse
+import com.unimate.domain.verification.dto.SchoolListResponse
 import com.unimate.domain.verification.service.VerificationService
 import com.unimate.global.auth.dto.MessageResponse
-import com.unimate.global.school.dto.SchoolDomainResponse
 import com.unimate.global.school.service.SchoolService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -21,6 +22,13 @@ class VerificationController(
     private val verificationService: VerificationService,
     private val schoolService: SchoolService
 ) {
+
+    @GetMapping("/all-schools")
+    @Operation(summary = "전체 학교 목록 조회")
+    fun getAllSchools(): ResponseEntity<List<SchoolListResponse>> {
+        val schools = schoolService.getAllSchools()
+        return ResponseEntity.ok(schools)
+    }
 
     @GetMapping("/school-domain")
     @Operation(summary = "학교명으로 도메인 조회")

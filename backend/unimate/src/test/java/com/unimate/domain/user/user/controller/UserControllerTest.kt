@@ -111,7 +111,7 @@ class UserControllerTest {
         val emailPrefix = "newtest"
         val code = "123456"
 
-        val fullEmail = "$emailPrefix@biomedical.korea.ac.kr"
+        val fullEmail = "$emailPrefix@korea.ac.kr"
         val verification = Verification(fullEmail, code, LocalDateTime.now().plusMinutes(5))
         verification.markVerified()
         verificationRepository.save(verification)
@@ -134,7 +134,7 @@ class UserControllerTest {
     @DisplayName("PATCH /api/v1/user/email - 인증되지 않은 이메일로 수정 시 실패")
     fun `update user email fail unverified`() {
         val emailPrefix = "failtest"
-        val fullEmail = "$emailPrefix@biomedical.korea.ac.kr"
+        val fullEmail = "$emailPrefix@korea.ac.kr"
 
         val verification = Verification(fullEmail, "000000", LocalDateTime.now().plusMinutes(5))
         verificationRepository.save(verification)
