@@ -24,6 +24,7 @@ configurations {
 }
 repositories {
     mavenCentral()
+    maven(url = "https://maven.pkg.jetbrains.space/public/p/kotlinx-coroutines/maven")
 }
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
