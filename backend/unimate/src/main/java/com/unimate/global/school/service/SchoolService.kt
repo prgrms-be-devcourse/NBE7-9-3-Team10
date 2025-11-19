@@ -15,7 +15,7 @@ class SchoolService(
     @Value("\${school-data.cache-dir:./cache}")
     private val cacheDir: String,
 
-    @Value("\${school-data.cache-file-name:school-domains.json}")
+    @Value("\${school-data.cache-file-name:schools.json}")
     private val cacheFileName: String
 ) {
 

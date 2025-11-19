@@ -71,7 +71,7 @@ dependencies {
     // Kotlin Coroutines - 비동기 작업을 위한 코루틴 라이브러리
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.7.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-spring:1.7.3")
+//    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-spring:1.7.3")
 
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.4.0")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
