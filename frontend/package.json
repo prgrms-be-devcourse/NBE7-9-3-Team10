@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@headlessui/react": "^2.2.9",
     "@hookform/resolvers": "^5.2.2",
     "@stomp/stompjs": "^7.2.1",
     "@swc/helpers": "^0.5.17",

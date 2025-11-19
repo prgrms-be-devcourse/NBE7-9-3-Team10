@@ -95,7 +95,7 @@ export interface MatchResultItem {
   createdAt: string;
   updatedAt: string;
   confirmedAt: string;
-  // 추가 필드 (프론트엔드 계산용)
+  rematchRound?: number;  
   partnerName?: string;
   chatroomId?: number;
 }

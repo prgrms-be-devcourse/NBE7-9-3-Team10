@@ -272,7 +272,7 @@ class ChatroomService(
 
         val partnerId = partnerIdOf(me, room)
         matchRepository.findMatchBetweenUsers(me, partnerId)
-            .ifPresent(matchRepository::delete)
+            ?.let { matchRepository.delete(it) }
 
         return ChatRoomLeaveResponse(
             chatroomId = room.id,

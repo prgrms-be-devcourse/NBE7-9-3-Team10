@@ -100,8 +100,9 @@ export default function MatchResultsPage() {
         {results.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {results.map((result) => {
-              // 상대방 이름 결정 (현재 사용자 기준)
-              const partnerName = result.receiverName; // 백엔드에서 이미 올바른 파트너를 설정함
+              const partnerName = result.receiverName; 
+              const rematchRound = result.rematchRound || 0;
+              const isRematch = rematchRound > 0;
               
               // 날짜 계산 수정 (confirmedAt이 없거나 유효하지 않은 경우 처리)
               const matchDate = result.confirmedAt ? new Date(result.confirmedAt) : new Date();
@@ -156,11 +157,21 @@ export default function MatchResultsPage() {
                     <div className="flex-1">
                       <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                         {partnerName}
+                        {isRematch && (
+                          <span className="ml-2 text-sm font-normal text-purple-600 dark:text-purple-400">
+                            ({rematchRound}차 재매칭)
+                          </span>
+                        )}
                       </h3>
                       <div className="flex items-center gap-2">
                         <span className="text-sm px-3 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-full font-semibold">
                           ✓ 매칭 확정
                         </span>
+                        {isRematch && (
+                          <span className="text-sm px-3 py-1 bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 rounded-full font-semibold">
+                            🔄 재매칭
+                          </span>
+                        )}
                         <span className="text-sm text-gray-500 dark:text-gray-400">
                           {timeDisplay}
                         </span>

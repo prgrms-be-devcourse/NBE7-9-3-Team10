@@ -233,8 +233,8 @@ import java.time.LocalDate
             .andExpect(jsonPath("$.isMatched").value(false))
 
         val senderId = sender.getIdOrThrow()
-        assertThat(matchRepository.findBySenderIdAndReceiverId(senderId, receiverId))
-            .isPresent
+        assertThat(matchRepository.findAllBySenderIdAndReceiverId(senderId, receiverId))
+            .isNotEmpty()
     }
 
     @Test
@@ -259,7 +259,7 @@ import java.time.LocalDate
         // 기존 Match가 REQUEST 타입으로 변경되었는지 확인
         val senderId = sender.getIdOrThrow()
         val match = matchRepository.findMatchBetweenUsers(senderId, receiverId)
-            .orElseThrow { IllegalStateException("매칭을 찾을 수 없습니다.") }
+            ?: throw IllegalStateException("매칭을 찾을 수 없습니다.")
         assertThat(match.matchType).isEqualTo(MatchType.REQUEST)
     }
 
@@ -277,8 +277,8 @@ import java.time.LocalDate
             .andExpect(status().isNoContent)
 
         val senderId = sender.getIdOrThrow()
-        assertThat(matchRepository.findBySenderIdAndReceiverId(senderId, receiverId))
-            .isEmpty
+        assertThat(matchRepository.findAllBySenderIdAndReceiverId(senderId, receiverId))
+            .isEmpty()
     }
 
     @Test

@@ -267,7 +267,7 @@ import java.time.LocalDate
 
         // then
         assertThat(response.isMatched).isFalse
-        assertThat(matchRepository.findBySenderIdAndReceiverId(senderId, receiverId)).isPresent
+        assertThat(matchRepository.findAllBySenderIdAndReceiverId(senderId, receiverId)).isNotEmpty()
     }
 
     @Test
@@ -297,7 +297,7 @@ import java.time.LocalDate
         matchService.cancelLike(senderId, receiverId)
 
         // then
-        assertThat(matchRepository.findBySenderIdAndReceiverId(senderId, receiverId)).isEmpty
+        assertThat(matchRepository.findAllBySenderIdAndReceiverId(senderId, receiverId)).isEmpty()
     }
 
     @Test

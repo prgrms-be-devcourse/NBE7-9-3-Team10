@@ -131,6 +131,21 @@ class MatchController(
         return ResponseEntity.noContent().build()
     }
 
+    /**
+     * 재매칭 요청
+     */
+    @PostMapping("/{matchId}/rematch")
+    @Operation(summary = "재매칭 요청")
+    fun requestRematch(
+        @PathVariable matchId: Long,
+        @AuthenticationPrincipal user: CustomUserPrincipal
+    ): ResponseEntity<MatchConfirmResponse> {
+        val rematch = matchService.requestRematch(matchId, user.userId)
+        return ResponseEntity.ok(
+            buildMatchConfirmResponse(rematch, "재매칭 요청이 전송되었습니다.")
+        )
+    }
+
 
     // 매칭 확정 응답 생성 헬퍼 메서드
     private fun buildMatchConfirmResponse(

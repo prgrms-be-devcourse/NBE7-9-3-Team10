@@ -36,7 +36,6 @@ class MatchFilterService(
         }
 
         val age = matchUtilityService.calculateAge(profile.birthDate)
-            ?: return false  // birthDate가 null이거나 계산 실패 시 필터링에서 제외
 
         return when (ageRangeFilter.lowercase()) {
             "20-22" -> age >= 20 && age <= 22

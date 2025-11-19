@@ -30,6 +30,10 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import com.unimate.global.mail.EmailService
 import org.springframework.test.context.bean.override.mockito.MockitoBean
+import com.unimate.domain.match.repository.MatchRepository
+import com.unimate.domain.review.repository.ReviewRepository
+import com.unimate.domain.userMatchPreference.repository.UserMatchPreferenceRepository
+import com.unimate.domain.userProfile.repository.UserProfileRepository
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -55,6 +59,18 @@ class AdminReportControllerTest {
     @Autowired
     private lateinit var reportRepository: ReportRepository
 
+    @Autowired
+    private lateinit var reviewRepository: ReviewRepository
+
+    @Autowired
+    private lateinit var matchRepository: MatchRepository
+
+    @Autowired
+    private lateinit var userProfileRepository: UserProfileRepository
+
+    @Autowired
+    private lateinit var userMatchPreferenceRepository: UserMatchPreferenceRepository
+
     @MockitoBean
     private lateinit var mailSender: MailSender
 
@@ -71,6 +87,11 @@ class AdminReportControllerTest {
 
     @BeforeEach
     fun setUp() {
+        // 외래키 제약을 고려한 삭제 순서
+        reviewRepository.deleteAll()
+        matchRepository.deleteAll()
+        userMatchPreferenceRepository.deleteAll()
+        userProfileRepository.deleteAll()
         reportRepository.deleteAll()
         userRepository.deleteAll()
         adminRepository.deleteAll()

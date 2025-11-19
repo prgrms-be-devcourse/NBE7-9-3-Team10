@@ -123,8 +123,28 @@ export const getErrorMessage = (error: unknown): string => {
     return error;
   }
   
-  if (error && typeof error === 'object' && 'message' in error) {
-    return String(error.message);
+  if (error && typeof error === 'object') {
+    if ('message' in error) {
+      return String(error.message);
+    }
+    
+    // AxiosError 형태 확인
+    if ('response' in error) {
+      const axiosError = error as any;
+      const responseData = axiosError.response?.data;
+      if (responseData?.message) {
+        return responseData.message;
+      }
+      if (responseData?.error) {
+        return responseData.error;
+      }
+      return `서버 오류 (${axiosError.response?.status || '알 수 없음'})`;
+    }
+    
+    // 빈 객체인 경우
+    if (Object.keys(error).length === 0) {
+      return '알 수 없는 오류가 발생했습니다.';
+    }
   }
   
   return '알 수 없는 오류가 발생했습니다.';

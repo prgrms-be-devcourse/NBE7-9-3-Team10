@@ -73,12 +73,29 @@ const createApiInstance = (): AxiosInstance => {
         }
       }
 
-      // 에러 응답 변환
+      let errorMessage = '알 수 없는 오류가 발생했습니다.';
+      
+      if (error.response?.data) {
+        const responseData = error.response.data;
+        // 다양한 형태의 에러 메시지 추출 시도
+        if (typeof responseData === 'string') {
+          errorMessage = responseData;
+        } else if (typeof responseData === 'object') {
+          errorMessage = (responseData as any).message || 
+                        (responseData as any).error || 
+                        (responseData as any).errorMessage ||
+                        errorMessage;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
       const apiError: ApiError = {
-        message: (error.response?.data as { message?: string })?.message || error.message || 'Unknown error',
+        message: errorMessage,
         status: error.response?.status || 500,
         timestamp: new Date().toISOString(),
         path: error.config?.url,
+        errorCode: (error.response?.data as any)?.errorCode,
       };
 
       return Promise.reject(apiError);
@@ -99,7 +116,18 @@ export const apiRequest = async <T>(
     const response = await apiClient.request<T>(requestConfig);
     return response.data;
   } catch (error: unknown) {
-    throw error;
+    // 인터셉터에서 변환된 ApiError를 그대로 전달
+    // 만약 ApiError가 아니면 변환
+    if (error && typeof error === 'object' && 'message' in error) {
+      throw error;
+    }
+    // 예상치 못한 에러 형태인 경우 ApiError로 변환
+    throw {
+      message: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.',
+      status: 500,
+      timestamp: new Date().toISOString(),
+      path: (requestConfig as any)?.url,
+    } as ApiError;
   }
 };
 

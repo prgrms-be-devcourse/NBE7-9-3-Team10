@@ -117,7 +117,8 @@ class MatchUtilityService {
             match.preferenceScore,
             match.createdAt ?: throw ServiceException.internalServerError("생성일시가 null입니다."),
             match.updatedAt ?: throw ServiceException.internalServerError("수정일시가 null입니다."),
-            match.confirmedAt ?: throw ServiceException.internalServerError("확정일시가 null입니다.")
+            match.confirmedAt ?: throw ServiceException.internalServerError("확정일시가 null입니다."),
+            match.rematchRound
         )
     }
 }
