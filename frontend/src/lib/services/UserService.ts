@@ -9,6 +9,12 @@ export interface UserInfo {
   university: string;
 }
 
+export interface EmailDomainInfo {
+  university: string;
+  domain: string;
+  currentEmail: string;
+}
+
 export interface UserUpdateEmailResponse extends UserInfo {
   accessToken: string;
 }
@@ -27,10 +33,28 @@ export class UserService {
     return response;
   }
 
-  static async updateEmail(newEmail: string, code: string): Promise<UserUpdateEmailResponse> {
+  /**
+   * 현재 사용자의 대학교 도메인 조회
+   */
+  static async getEmailDomain(): Promise<EmailDomainInfo> {
+    const response = await api.get<EmailDomainInfo>(
+      `${API_ENDPOINTS.USER}/email/domain`
+    );
+    return response;
+  }
+
+  /**
+   * 이메일 수정 (emailPrefix + code 사용)
+   * @param emailPrefix - 이메일 앞 부분만 (예: "kim")
+   * @param code - 인증 코드
+   */
+  static async updateEmail(
+    emailPrefix: string,
+    code: string
+  ): Promise<UserUpdateEmailResponse> {
     const response = await api.patch<UserUpdateEmailResponse>(
       `${API_ENDPOINTS.USER}/email`,
-      { newEmail, code }
+      { emailPrefix, code }
     );
     return response;
   }

@@ -108,15 +108,15 @@ class UserControllerTest {
     @Test
     @DisplayName("PATCH /api/v1/user/email - 이메일 수정 성공 (인증 완료된 경우)")
     fun `update user email success`() {
-        val newEmail = "newtest@uni.ac.kr"
+        val emailPrefix = "newtest"
         val code = "123456"
 
-        val verification = Verification(newEmail, code, LocalDateTime.now().plusMinutes(5))
+        val fullEmail = "$emailPrefix@biomedical.korea.ac.kr"
+        val verification = Verification(fullEmail, code, LocalDateTime.now().plusMinutes(5))
         verification.markVerified()
         verificationRepository.save(verification)
 
-        val request = UserUpdateEmailRequest(newEmail, code)
-
+        val request = UserUpdateEmailRequest(emailPrefix, code)
         mockMvc.perform(
             patch("$baseUrl/email")
                 .header("Authorization", "Bearer $accessToken")
@@ -124,21 +124,22 @@ class UserControllerTest {
                 .content(objectMapper.writeValueAsString(request))
         )
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.email").value(newEmail))
+            .andExpect(jsonPath("$.email").value(fullEmail))
 
-        val updated = userRepository.findByEmail(newEmail)
-        assertThat(updated?.email).isEqualTo(newEmail)
+        val updated = userRepository.findByEmail(fullEmail)
+        assertThat(updated?.email).isEqualTo(fullEmail)
     }
 
     @Test
-    @DisplayName("PATCH /api/v1/user/email - 인증되지 않은 이메일로 수정 시 실패 (400)")
+    @DisplayName("PATCH /api/v1/user/email - 인증되지 않은 이메일로 수정 시 실패")
     fun `update user email fail unverified`() {
-        val newEmail = "failtest@uni.ac.kr"
+        val emailPrefix = "failtest"
+        val fullEmail = "$emailPrefix@biomedical.korea.ac.kr"
 
-        val verification = Verification(newEmail, "000000", LocalDateTime.now().plusMinutes(5))
+        val verification = Verification(fullEmail, "000000", LocalDateTime.now().plusMinutes(5))
         verificationRepository.save(verification)
 
-        val request = UserUpdateEmailRequest(newEmail, "000000")
+        val request = UserUpdateEmailRequest(emailPrefix, "000000")
 
         mockMvc.perform(
             patch("$baseUrl/email")
