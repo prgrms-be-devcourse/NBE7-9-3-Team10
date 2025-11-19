@@ -60,20 +60,20 @@ class SimilarityCalculator(private val elasticsearchOperations: ElasticsearchOpe
         return round(finalScore * 100) / 100.0
     }
 
-    // Elasticsearch의 function_score를 사용하여 유사도를 계산하는 새로운 메소드
+    // Elasticsearch의 function_score를 사용하여 유사도 계산
     fun calculateSimilarityWithElasticsearch(preference: UserMatchPreference): Double {
-        // 1. 선호하는 연령대를 기반으로 검색할 생년월일 범위를 계산
+        // 선호하는 연령대를 기반으로 검색할 생년월일 범위 계산
         val (minBirthDate, maxBirthDate) = preference.preferredAgeGap?.let {
             getBirthDateRangeFromAgeBlock(it)
         } ?: Pair(LocalDate.now().minusYears(100), LocalDate.now())
 
-        // 2. 스코어링 함수 배열과 정규화를 위한 총 가중치를 계산
+        // 스코어링 함수 배열과 정규화를 위한 총 가중치 계산
         val (functionsJson, totalWeight) = buildScoreFunctionsAndWeight(preference)
 
         // 총 가중치가 0이면 계산할 필요 없이 0점 반환
         if (totalWeight <= 0) return 0.0
 
-        // 3. 최종적으로 실행할 Elasticsearch function_score 쿼리를 생성
+        // 최종적으로 실행할 Elasticsearch function_score 쿼리 생성
         val query = """
         {
           "query": {
@@ -100,7 +100,7 @@ class SimilarityCalculator(private val elasticsearchOperations: ElasticsearchOpe
         if (searchHits.totalHits == 0L) return 0.0
 
         val rawScore = searchHits.getSearchHit(0).score.toDouble()
-        // 4. ES에서 받은 점수를 총 가중치로 나누어 0.0 ~ 1.0 사이 값으로 정규화
+        // ES에서 받은 점수를 총 가중치로 나누어 0.0 ~ 1.0 사이 값으로 정규화
         val normalizedScore = rawScore / totalWeight
         
         return round(normalizedScore * 100.0) / 100.0
