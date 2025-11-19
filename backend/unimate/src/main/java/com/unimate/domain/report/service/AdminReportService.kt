@@ -2,15 +2,12 @@ package com.unimate.domain.report.service
 
 import com.unimate.domain.match.repository.MatchRepository
 import com.unimate.domain.notification.repository.NotificationRepository
-import com.unimate.domain.report.dto.AdminReportActionRequest
-import com.unimate.domain.report.dto.AdminReportActionResponse
-import com.unimate.domain.report.dto.ReportDetailResponse
-import com.unimate.domain.report.dto.ReportListResponse
-import com.unimate.domain.report.dto.ReportSummary
+import com.unimate.domain.report.dto.*
 import com.unimate.domain.report.entity.Report
 import com.unimate.domain.report.entity.ReportStatus
 import com.unimate.domain.report.repository.ReportRepository
 import com.unimate.domain.report.repository.ReportSpecification
+import com.unimate.domain.review.repository.ReviewRepository
 import com.unimate.domain.user.admin.repository.AdminRepository
 import com.unimate.domain.user.user.repository.UserRepository
 import com.unimate.domain.userMatchPreference.repository.UserMatchPreferenceRepository
@@ -18,7 +15,6 @@ import com.unimate.domain.userProfile.repository.UserProfileRepository
 import com.unimate.global.exception.ServiceException
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
-import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -31,7 +27,8 @@ class AdminReportService(
     private val matchRepository: MatchRepository,
     private val userProfileRepository: UserProfileRepository,
     private val userMatchPreferenceRepository: UserMatchPreferenceRepository,
-    private val notificationRepository: NotificationRepository
+    private val notificationRepository: NotificationRepository,
+    private val reviewRepository: ReviewRepository
 ) {
 
     // 각 메서드 로직에 관해, 잊어먹지 않기 위해 간략 주석
@@ -113,22 +110,34 @@ class AdminReportService(
             // 피신고자 '강제 탈퇴'처리
             request.action == AdminReportActionRequest.ActionType.DEACTIVATE -> {
                 val reportedUser = report.reported ?: throw ServiceException.badRequest("피신고자가 존재하지 않습니다.")
+                val reportedUserId = reportedUser.id ?: throw ServiceException.badRequest("피신고자 ID가 존재하지 않습니다.")
 
                 // 탈퇴할 유저와 관련된 모든 신고에서 해당 유저 정보 null로 변경
                 val relatedReports = reportRepository.findByReporterOrReported(reportedUser, reportedUser)
                 relatedReports.forEach { r ->
-                    if (r.reporter?.id == reportedUser.id) {
+                    if (r.reporter?.id == reportedUserId) {
                         r.reporter = null
                     }
-                    if (r.reported?.id == reportedUser.id) {
+                    if (r.reported?.id == reportedUserId) {
                         r.reported = null
                     }
                 }
 
-                // User를 참조하는 다른 자식 테이블 데이터들 우선 삭제
+                //  User를 참조하는 다른 자식 테이블 데이터들 우선 삭제 (외래키 제약 고려)
+                // 1. reviews 삭제 (matches 참조) - 사용자가 관련된 모든 matches의 리뷰 삭제
+                val userMatches = matchRepository.findBySenderIdOrReceiverWithUsers(reportedUserId)
+                userMatches.forEach { match ->
+                    reviewRepository.findByMatch(match).forEach { review ->
+                        reviewRepository.delete(review)
+                    }
+                }
+                
+                // 2. matches 삭제 (users 참조)
                 matchRepository.deleteAllBySenderOrReceiver(reportedUser, reportedUser)
-                userProfileRepository.deleteByUserId(reportedUser.id ?: throw ServiceException.badRequest("피신고자 ID가 존재하지 않습니다."))
-                userMatchPreferenceRepository.deleteByUserId(reportedUser.id ?: throw ServiceException.badRequest("피신고자 ID가 존재하지 않습니다."))
+                
+                // 3. 기타 자식 테이블 삭제
+                userProfileRepository.deleteByUserId(reportedUserId)
+                userMatchPreferenceRepository.deleteByUserId(reportedUserId)
                 notificationRepository.deleteByUser(reportedUser)
 
                 // 현재 처리 중인 신고 건 상태 'RESOLVED'로 변경
