@@ -74,8 +74,11 @@ export interface MatchStatusItem {
   preferenceScore: number;
   createdAt: string;
   confirmedAt?: string;
-  message: string;
+  message?: string;
   partner: MatchStatusPartnerInfo;
+  myResponse: 'PENDING' | 'ACCEPTED' | 'REJECTED';
+  partnerResponse: 'PENDING' | 'ACCEPTED' | 'REJECTED';
+  waitingForPartner: boolean;
 }
 
 export interface MatchStatusResponse {

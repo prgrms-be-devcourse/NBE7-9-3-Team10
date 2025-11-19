@@ -260,8 +260,8 @@ export default function WrittenReviewList() {
     if (error) {
         return (
             <div className="text-center py-12">
-                <p className="text-red-500 text-lg">에러가 발생했습니다.</p>
-                <p className="text-gray-400 text-sm mt-2">{error}</p>
+                <p className="text-red-500 dark:text-red-400 text-lg">에러가 발생했습니다.</p>
+                <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">{error}</p>
             </div>
         );
     }
@@ -269,9 +269,9 @@ export default function WrittenReviewList() {
     if (matchesWithReviews.length === 0) {
         return (
             <div className="text-center py-12">
-                <MessageSquare className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500 text-lg">작성된 리뷰가 없습니다.</p>
-                <p className="text-gray-400 text-sm mt-2">
+                <MessageSquare className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                <p className="text-gray-500 dark:text-gray-400 text-lg">작성된 리뷰가 없습니다.</p>
+                <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">
                     작성한 리뷰가 여기에 표시됩니다.
                 </p>
             </div>
@@ -283,16 +283,16 @@ export default function WrittenReviewList() {
             {matchesWithReviews.map((matchData) => (
                 <div
                     key={matchData.matchId}
-                    className="bg-gray-50 rounded-lg p-4 border border-gray-200"
+                    className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700"
                 >
                     <div className="flex items-center gap-3 mb-3">
-                        <User className="w-5 h-5 text-gray-500" />
+                        <User className="w-5 h-5 text-gray-500 dark:text-gray-400" />
                         <div className="flex-1">
-                            <p className="font-bold text-lg text-gray-900">
+                            <p className="font-bold text-lg text-gray-900 dark:text-white">
                                 {matchData.partnerName}
                             </p>
                             {matchData.partnerUniversity && (
-                                <p className="text-sm text-gray-600">
+                                <p className="text-sm text-gray-600 dark:text-gray-400">
                                     {matchData.partnerUniversity}
                                 </p>
                             )}
@@ -301,8 +301,8 @@ export default function WrittenReviewList() {
 
                     {/* 리뷰가 없는 경우 안내 */}
                     {!matchData.myReview && !matchData.partnerReview && (
-                        <div className="bg-blue-50 rounded-lg p-3 border border-blue-200 mb-3">
-                            <p className="text-sm text-blue-700">
+                        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 border border-blue-200 dark:border-blue-800 mb-3">
+                            <p className="text-sm text-blue-700 dark:text-blue-300">
                                 아직 작성된 리뷰가 없습니다.
                             </p>
                         </div>
@@ -311,9 +311,9 @@ export default function WrittenReviewList() {
                     <div className="space-y-3">
                         {/* 내가 작성한 리뷰 */}
                         {matchData.myReview && (
-                            <div className="bg-white rounded-lg p-3 border border-blue-200">
+                            <div className="bg-white dark:bg-gray-700 rounded-lg p-3 border border-blue-200 dark:border-blue-800">
                                 <div className="flex items-center justify-between mb-2">
-                                    <p className="text-sm font-semibold text-blue-700">내가 작성한 리뷰</p>
+                                    <p className="text-sm font-semibold text-blue-700 dark:text-blue-300">내가 작성한 리뷰</p>
                                     <div className="flex items-center gap-2">
                                         <div className="flex items-center gap-1">
                                             {Array.from({ length: 5 }).map((_, i) => (
@@ -323,8 +323,8 @@ export default function WrittenReviewList() {
                                                     fill={i < matchData.myReview!.rating ? "currentColor" : "none"}
                                                     className={
                                                         i < matchData.myReview!.rating
-                                                            ? "text-yellow-400"
-                                                            : "text-gray-300"
+                                                            ? "text-yellow-400 dark:text-yellow-500"
+                                                            : "text-gray-300 dark:text-gray-600"
                                                     }
                                                 />
                                             ))}
@@ -332,7 +332,7 @@ export default function WrittenReviewList() {
                                         {/* 수정 버튼 */}
                                         <button
                                             onClick={() => handleEditReview(matchData.myReview!)}
-                                            className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                                            className="p-1 text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                                             title="리뷰 수정"
                                         >
                                             <Edit2 className="w-4 h-4" />
@@ -340,7 +340,7 @@ export default function WrittenReviewList() {
                                         <button
                                             onClick={() => handleDeleteReview(matchData.myReview!.reviewId)}
                                             disabled={deletingReviewId === matchData.myReview!.reviewId || deleting}
-                                            className="p-1 text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                            className="p-1 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                             title="리뷰 삭제"
                                         >
                                             {deletingReviewId === matchData.myReview!.reviewId ? (
@@ -352,17 +352,17 @@ export default function WrittenReviewList() {
                                     </div>
                                 </div>
                                 {matchData.myReview.content && (
-                                    <p className="text-sm text-gray-700 mt-2">
+                                    <p className="text-sm text-gray-700 dark:text-gray-300 mt-2">
                                         {matchData.myReview.content}
                                     </p>
                                 )}
                                 <div className="flex items-center gap-2 mt-2">
                                     {matchData.myReview.recommend ? (
-                                        <ThumbsUp className="w-4 h-4 text-green-600" />
+                                        <ThumbsUp className="w-4 h-4 text-green-600 dark:text-green-400" />
                                     ) : (
-                                        <ThumbsDown className="w-4 h-4 text-red-600" />
+                                        <ThumbsDown className="w-4 h-4 text-red-600 dark:text-red-400" />
                                     )}
-                                    <span className="text-xs text-gray-500">
+                                    <span className="text-xs text-gray-500 dark:text-gray-400">
                                         {matchData.myReview.recommend ? "추천" : "비추천"}
                                     </span>
                                 </div>
@@ -371,9 +371,9 @@ export default function WrittenReviewList() {
 
                         {/* 상대방이 작성한 리뷰 */}
                         {matchData.partnerReview && (
-                            <div className="bg-white rounded-lg p-3 border border-gray-200">
+                            <div className="bg-white dark:bg-gray-700 rounded-lg p-3 border border-gray-200 dark:border-gray-600">
                                 <div className="flex items-center justify-between mb-2">
-                                    <p className="text-sm font-semibold text-gray-700">
+                                    <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                                         {matchData.partnerName}님이 작성한 리뷰
                                     </p>
                                     <div className="flex items-center gap-1">
@@ -384,25 +384,25 @@ export default function WrittenReviewList() {
                                                 fill={i < matchData.partnerReview!.rating ? "currentColor" : "none"}
                                                 className={
                                                     i < matchData.partnerReview!.rating
-                                                        ? "text-yellow-400"
-                                                        : "text-gray-300"
+                                                        ? "text-yellow-400 dark:text-yellow-500"
+                                                        : "text-gray-300 dark:text-gray-600"
                                                 }
                                             />
                                         ))}
                                     </div>
                                 </div>
                                 {matchData.partnerReview.content && (
-                                    <p className="text-sm text-gray-700 mt-2">
+                                    <p className="text-sm text-gray-700 dark:text-gray-300 mt-2">
                                         {matchData.partnerReview.content}
                                     </p>
                                 )}
                                 <div className="flex items-center gap-2 mt-2">
                                     {matchData.partnerReview.recommend ? (
-                                        <ThumbsUp className="w-4 h-4 text-green-600" />
+                                        <ThumbsUp className="w-4 h-4 text-green-600 dark:text-green-400" />
                                     ) : (
-                                        <ThumbsDown className="w-4 h-4 text-red-600" />
+                                        <ThumbsDown className="w-4 h-4 text-red-600 dark:text-red-400" />
                                     )}
-                                    <span className="text-xs text-gray-500">
+                                    <span className="text-xs text-gray-500 dark:text-gray-400">
                                         {matchData.partnerReview.recommend ? "추천" : "비추천"}
                                     </span>
                                 </div>
@@ -412,7 +412,7 @@ export default function WrittenReviewList() {
 
                     {/* 재매칭 버튼 */}
                     {matchData.canRematch && (
-                        <div className="mt-4 pt-3 border-t border-gray-200">
+                        <div className="mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
                             <Button
                                 variant="primary"
                                 size="md"
@@ -437,9 +437,9 @@ export default function WrittenReviewList() {
 
                     {/* PENDING 상태의 재매칭이 있는 경우 안내 메시지 */}
                     {matchData.hasPendingRematch && !matchData.canRematch && (
-                        <div className="mt-4 pt-3 border-t border-gray-200">
-                            <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
-                                <p className="text-sm text-blue-700 font-medium">
+                        <div className="mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
+                            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 border border-blue-200 dark:border-blue-800">
+                                <p className="text-sm text-blue-700 dark:text-blue-300 font-medium">
                                     재매칭 요청이 진행 중입니다. 채팅방에서 확인해주세요.
                                 </p>
                             </div>

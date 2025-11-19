@@ -268,7 +268,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <svg
-              className="w-5 h-5 text-blue-600"
+              className="w-5 h-5 text-blue-600 dark:text-blue-400"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -307,7 +307,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     <button
                       onClick={handleNameUpdate}
                       disabled={isUpdatingName}
-                      className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 disabled:bg-gray-400 dark:disabled:bg-gray-600"
+                      className="px-3 py-1 bg-blue-600 dark:bg-blue-500 text-white text-sm rounded hover:bg-blue-700 dark:hover:bg-blue-600 disabled:bg-gray-400 dark:disabled:bg-gray-600"
                     >
                       {isUpdatingName ? '저장 중...' : '저장'}
                     </button>
@@ -325,7 +325,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   <p className="text-gray-900 dark:text-white">{user.name}</p>
                   <button
                     onClick={() => setIsEditingName(true)}
-                    className="text-blue-600 hover:text-blue-700 text-sm"
+                    className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-500 text-sm"
                   >
                     <svg
                       className="w-4 h-4"
@@ -405,8 +405,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       }
                       className={`px-4 py-2 text-white text-sm whitespace-nowrap ${
                         isEmailVerified
-                          ? 'bg-green-500 cursor-default'
-                          : 'bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400'
+                          ? 'bg-green-500 dark:bg-green-600 cursor-default'
+                          : 'bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 disabled:bg-gray-400 dark:disabled:bg-gray-600'
                       }`}
                     >
                       {isEmailVerified ? '인증 완료' : isEmailCodeSent ? '인증번호 재전송' : '인증번호 전송'}
@@ -427,7 +427,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                       <button
                         onClick={handleVerifyEmailCode}
                         disabled={isUpdatingEmail}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 whitespace-nowrap"
+                        className="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded-md hover:bg-blue-700 dark:hover:bg-blue-600 whitespace-nowrap"
                       >
                         확인
                       </button>
@@ -436,10 +436,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
 
                   {/* 에러/성공 메시지 */}
                   {emailError && (
-                    <p className="text-red-500 text-sm">{emailError}</p>
+                    <p className="text-red-500 dark:text-red-400 text-sm">{emailError}</p>
                   )}
                   {emailMessage && (
-                    <p className="text-blue-600 text-sm">{emailMessage}</p>
+                    <p className="text-blue-600 dark:text-blue-400 text-sm">{emailMessage}</p>
                   )}
 
                   {/* 저장/취소 버튼 */}
@@ -447,7 +447,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     <button
                       onClick={handleEmailUpdate}
                       disabled={!isEmailVerified || isUpdatingEmail}
-                      className="flex-1 px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400 dark:disabled:bg-gray-600"
+                      className="flex-1 px-3 py-2 bg-blue-600 dark:bg-blue-500 text-white rounded hover:bg-blue-700 dark:hover:bg-blue-600 disabled:bg-gray-400 dark:disabled:bg-gray-600"
                     >
                       {isUpdatingEmail ? '변경 중...' : '이메일 변경'}
                     </button>
@@ -467,7 +467,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                   </p>
                   <button
                     onClick={() => setIsEditingEmail(true)}
-                    className="text-blue-600 hover:text-blue-700 text-sm"
+                    className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-500 text-sm"
                   >
                     <svg
                       className="w-4 h-4"
@@ -495,7 +495,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <svg
-              className="w-5 h-5 text-blue-600"
+              className="w-5 h-5 text-blue-600 dark:text-blue-400"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -627,7 +627,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <svg
-              className="w-5 h-5 text-orange-600"
+              className="w-5 h-5 text-orange-600 dark:text-orange-400"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -677,7 +677,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <svg
-              className="w-5 h-5 text-green-600"
+              className="w-5 h-5 text-green-600 dark:text-green-400"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"

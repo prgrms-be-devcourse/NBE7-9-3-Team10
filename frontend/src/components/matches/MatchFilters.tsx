@@ -40,13 +40,13 @@ export const MatchFilters = ({
     <>
       {/* 수면 시간대 */}
       <div>
-        <label className="block text-sm font-medium text-[#111827] dark:text-white mb-2">
+        <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
            수면 시간대
         </label>
         <Select
           value={filters.sleepPattern || ''}
           onChange={(e) => handleFilterChange('sleepPattern', e.target.value)}
-          className="w-full px-2.5 py-1.5 text-sm border border-[#E5E7EB] dark:border-gray-600 rounded focus:outline-none focus:ring-1 focus:ring-[#4F46E5] bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          className="w-full px-2.5 py-1.5 text-sm border border-gray-200 dark:border-gray-600 rounded focus:outline-none focus:ring-1 focus:ring-blue-600 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
           options={[
             { value: '', label: '전체' },
             { value: 'very_early', label: '22시 이전' },
@@ -60,13 +60,13 @@ export const MatchFilters = ({
 
       {/* 청소 빈도 */}
       <div>
-        <label className="block text-sm font-medium text-[#111827] dark:text-white mb-2">
+        <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
           청소 빈도
         </label>
         <Select
           value={filters.cleaningFrequency || ''}
           onChange={(e) => handleFilterChange('cleaningFrequency', e.target.value)}
-          className="w-full px-2.5 py-1.5 text-sm border border-[#E5E7EB] dark:border-gray-600 rounded focus:outline-none focus:ring-1 focus:ring-[#4F46E5] bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          className="w-full px-2.5 py-1.5 text-sm border border-gray-200 dark:border-gray-600 rounded focus:outline-none focus:ring-1 focus:ring-blue-600 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
           options={[
             { value: '', label: '전체' },
             { value: 'daily', label: '매일' },
@@ -80,13 +80,13 @@ export const MatchFilters = ({
 
       {/* 나이대 */}
       <div>
-        <label className="block text-sm font-medium text-[#111827] dark:text-white mb-2">
+        <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
            나이대
         </label>
         <Select
           value={filters.ageRange || ''}
           onChange={(e) => handleFilterChange('ageRange', e.target.value)}
-          className="w-full px-2.5 py-1.5 text-sm border border-[#E5E7EB] dark:border-gray-600 rounded focus:outline-none focus:ring-1 focus:ring-[#4F46E5] bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+          className="w-full px-2.5 py-1.5 text-sm border border-gray-200 dark:border-gray-600 rounded focus:outline-none focus:ring-1 focus:ring-blue-600 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
           options={[
             { value: '', label: '전체' },
             { value: '20-22', label: '20-22세' },
@@ -102,7 +102,7 @@ export const MatchFilters = ({
       <Button
         onClick={onApplyFilters}
         disabled={isLoading}
-        className="w-full bg-[#4F46E5] hover:bg-[#4338CA] text-white font-medium py-2 text-sm rounded transition-colors"
+        className="w-full bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 text-white font-medium py-2 text-sm rounded transition-colors"
       >
         필터 적용
       </Button>

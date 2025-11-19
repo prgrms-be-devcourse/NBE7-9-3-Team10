@@ -66,7 +66,7 @@ export default function NotificationModal({
         return (
           <button
             onClick={() => notification.senderId && onViewProfile(notification.senderId)}
-            className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+            className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm font-medium"
           >
             프로필 보기
           </button>
@@ -75,7 +75,7 @@ export default function NotificationModal({
         return (
           <button
             onClick={() => notification.chatroomId && onViewChat(notification.chatroomId)}
-            className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+            className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm font-medium"
           >
             채팅창으로 이동
           </button>
@@ -86,14 +86,12 @@ export default function NotificationModal({
             <button
               onClick={() => {
                 if (notification.chatroomId) {
-                  // chatroomId가 있으면 직접 채팅방으로 이동
                   window.location.href = `/chat/${notification.chatroomId}`;
                 } else {
-                  // chatroomId가 없으면 채팅 목록으로 이동
                   window.location.href = '/chat';
                 }
               }}
-              className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+              className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm font-medium"
             >
               채팅창으로 이동
             </button>
@@ -148,13 +146,13 @@ export default function NotificationModal({
       />
       
       {/* Notification Panel */}
-      <div className="fixed top-14 right-4 z-50 bg-white rounded-xl shadow-xl w-80 max-h-[70vh] overflow-hidden border border-gray-200 animate-in slide-in-from-top-2 duration-200">
+      <div className="fixed top-14 right-4 z-50 bg-white dark:bg-gray-800 rounded-xl shadow-xl w-80 max-h-[70vh] overflow-hidden border border-gray-200 dark:border-gray-700 animate-in slide-in-from-top-2 duration-200">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-200">
+        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-bold text-gray-900">알림</h2>
-              <p className="text-sm text-gray-500 mt-1">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">알림</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 오프라인 동안 받은 알림은 로그인 시 표시됩니다.
               </p>
             </div>
@@ -166,10 +164,10 @@ export default function NotificationModal({
                   onClose()
                 }
               }}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
               title={localNotifications.length > 0 ? "모든 알림 삭제" : "닫기"}
             >
-              <X className="w-5 h-5 text-gray-500" />
+              <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
             </button>
           </div>
         </div>
@@ -178,19 +176,19 @@ export default function NotificationModal({
         <div className="overflow-y-auto max-h-80">
           {localNotifications.length === 0 ? (
             <div className="px-6 py-12 text-center">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <MessageCircle className="w-8 h-8 text-gray-400" />
+              <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                <MessageCircle className="w-8 h-8 text-gray-400 dark:text-gray-500" />
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">알림이 없습니다</h3>
-              <p className="text-gray-500">새로운 알림이 오면 여기에 표시됩니다.</p>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">알림이 없습니다</h3>
+              <p className="text-gray-500 dark:text-gray-400">새로운 알림이 오면 여기에 표시됩니다.</p>
             </div>
           ) : (
-            <div className="divide-y divide-gray-200">
+            <div className="divide-y divide-gray-200 dark:divide-gray-700">
               {localNotifications.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`px-6 py-4 hover:bg-gray-50 transition-colors cursor-pointer ${
-                    !notification.isRead ? 'bg-blue-50' : ''
+                  className={`px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer ${
+                    !notification.isRead ? 'bg-blue-50 dark:bg-blue-900/20' : ''
                   }`}
                   onClick={() => handleNotificationClick(notification)}
                 >
@@ -202,10 +200,10 @@ export default function NotificationModal({
 
                     {/* Content */}
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-gray-900 mb-1">
+                      <p className="text-sm text-gray-900 dark:text-white mb-1">
                         {notification.message}
                       </p>
-                      <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
+                      <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mb-2">
                         <Clock className="w-3 h-3" />
                         <span>{formatTime(notification.timestamp)}</span>
                       </div>
@@ -219,16 +217,16 @@ export default function NotificationModal({
                     {/* Actions */}
                     <div className="flex-shrink-0 flex items-center gap-2">
                       {!notification.isRead && (
-                        <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                        <div className="w-2 h-2 bg-red-500 dark:bg-red-400 rounded-full"></div>
                       )}
                       <button
                         onClick={(e) => {
                           e.stopPropagation()
                           onDeleteNotification(notification.id)
                         }}
-                        className="p-1 hover:bg-gray-200 rounded transition-colors"
+                        className="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors"
                       >
-                        <X className="w-4 h-4 text-gray-400" />
+                        <X className="w-4 h-4 text-gray-400 dark:text-gray-500" />
                       </button>
                     </div>
                   </div>

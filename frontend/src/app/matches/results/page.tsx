@@ -9,6 +9,7 @@ import { MatchService } from '../../../lib/services/matchService';
 import { getErrorMessage } from '../../../lib/utils/helpers';
 import type { MatchResultResponse, MatchResultItem } from '../../../types/match';
 import { User, Calendar, Home, Phone } from 'lucide-react';
+import AppHeader from '@/components/layout/AppHeader';
 
 interface EnrichedMatchResult extends MatchResultItem {
   partnerDetails?: any; // 상세 정보
@@ -80,6 +81,7 @@ export default function MatchResultsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <AppHeader />
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* 헤더 */}
         <div className="mb-8 flex items-center justify-between">
@@ -267,8 +269,8 @@ export default function MatchResultsPage() {
           <div className="fixed top-4 right-4 z-50">
             <div className={`max-w-sm w-full border rounded-lg shadow-lg p-4 ${
               toast.type === 'success' 
-                ? 'bg-green-50 border-green-200 text-green-800' 
-                : 'bg-red-50 border-red-200 text-red-800'
+                ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-800 dark:text-green-300' 
+                : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-800 dark:text-red-300'
             }`}>
               <div className="flex items-start">
                 <div className="flex-shrink-0 mr-3">

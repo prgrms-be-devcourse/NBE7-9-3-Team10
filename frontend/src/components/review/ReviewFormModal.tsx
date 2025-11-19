@@ -60,8 +60,8 @@ export function ReviewFormModal({
                             leaveFrom="opacity-100 scale-100 translate-y-0"
                             leaveTo="opacity-0 scale-95 translate-y-4"
                         >
-                            <Dialog.Panel className="w-full max-w-lg rounded-lg bg-white p-6 shadow-xl">
-                                <Dialog.Title className="text-xl font-semibold mb-4">
+                            <Dialog.Panel className="w-full max-w-lg rounded-lg bg-white dark:bg-gray-800 p-6 shadow-xl">
+                                <Dialog.Title className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
                                     {isEditMode ? `${revieweeName} 리뷰 수정` : `${revieweeName} 리뷰 작성`}
                                 </Dialog.Title>
 

@@ -254,21 +254,21 @@ const RegisterForm = () => {
   };
 
   return (
-    <div className="w-full max-w-md bg-white rounded-2xl shadow p-8">
+    <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow p-8">
       <div className="flex flex-col items-center mb-6">
-        <div className="bg-blue-600 text-white w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl mb-3">
+        <div className="bg-blue-600 dark:bg-blue-500 text-white w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl mb-3">
           U
         </div>
-        <h2 className="text-xl font-semibold mb-1">계정 만들기</h2>
-        <p className="text-sm text-gray-500 text-center">
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-1">계정 만들기</h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
           UniMate에 가입하여 완벽한 룸메이트를 찾아보세요.
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* ===== 대학교 (자동완성) ===== */}
+        {/* 대학교 */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">대학교</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">대학교</label>
           <div className="relative">
             <input
               type="text"
@@ -281,20 +281,20 @@ const RegisterForm = () => {
               }}
               placeholder="학교명을 입력하세요"
               disabled={isSchoolVerified || schoolsLoading}
-              className={`w-full border rounded-lg px-3 py-2 placeholder:text-gray-400 ${
-                errors.university ? 'border-red-500' : 'border-gray-300'
-              } focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100`}
+              className={`w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-white border rounded-lg px-3 py-2 placeholder:text-gray-400 dark:placeholder:text-gray-500 ${
+                errors.university ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+              } focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 disabled:bg-gray-100 dark:disabled:bg-gray-700`}
             />
 
             {/* 드롭다운 목록 */}
             {showDropdown && !isSchoolVerified && filteredSchools.length > 0 && (
-              <div className="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-lg mt-1 max-h-48 overflow-y-auto z-10 shadow-lg">
+              <div className="absolute top-full left-0 right-0 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg mt-1 max-h-48 overflow-y-auto z-10 shadow-lg">
                 {filteredSchools.slice(0, 100).map((school, idx) => (
                   <button
                     key={idx}
                     type="button"
                     onClick={() => handleSelectSchool(school)}
-                    className="w-full text-left px-3 py-2 hover:bg-blue-100 text-sm border-b border-gray-100 last:border-b-0 transition-colors"
+                    className="w-full text-left px-3 py-2 hover:bg-blue-100 dark:hover:bg-blue-900/30 text-gray-900 dark:text-white text-sm border-b border-gray-100 dark:border-gray-700 last:border-b-0 transition-colors"
                   >
                     {school.schoolName}
                   </button>
@@ -304,42 +304,33 @@ const RegisterForm = () => {
 
             {/* 검색 결과 없음 */}
             {showDropdown && !isSchoolVerified && university && filteredSchools.length === 0 && (
-              <div className="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-lg mt-1 z-10 shadow-lg">
-                <div className="px-3 py-4 text-center text-gray-500 text-sm">
+              <div className="absolute top-full left-0 right-0 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg mt-1 z-10 shadow-lg">
+                <div className="px-3 py-4 text-center text-gray-500 dark:text-gray-400 text-sm">
                   검색 결과가 없습니다.
                 </div>
               </div>
             )}
-
-            {/* 확인됨 표시 */}
-            {isSchoolVerified && (
-              <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                <span className="bg-green-500 text-white px-2 py-1 rounded text-xs font-medium">
-                  확인됨
-                </span>
-              </div>
-            )}
           </div>
-          {errors.university && <p className="text-red-500 text-sm mt-1">{errors.university}</p>}
+          {errors.university && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.university}</p>}
         </div>
 
-        {/* ===== 이메일 ===== */}
+        {/* 이메일 */}
         {isSchoolVerified && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">이메일</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">이메일</label>
             <div className="flex space-x-2">
-              <div className="flex-1 flex border border-gray-300 rounded-lg overflow-hidden">
+              <div className="flex-1 flex border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
                 <input
                   type="text"
                   value={emailId}
                   onChange={(e) => setEmailId(e.target.value)}
                   placeholder="이메일 아이디"
                   disabled={isVerified}
-                  className={`flex-1 px-3 py-2 placeholder:text-gray-400 text-sm focus:outline-none disabled:bg-gray-100 ${
+                  className={`flex-1 px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 text-sm focus:outline-none disabled:bg-gray-100 dark:disabled:bg-gray-700 ${
                     errors.emailId ? 'border-red-500' : ''
                   }`}
                 />
-                <span className="px-2 py-2 bg-gray-100 text-gray-600 text-sm font-medium border-l border-gray-300">
+                <span className="px-2 py-2 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-sm font-medium border-l border-gray-300 dark:border-gray-600">
                   @{emailDomain}
                 </span>
               </div>
@@ -349,21 +340,21 @@ const RegisterForm = () => {
                 disabled={loading || isVerified}
                 className={`px-3 py-2 rounded-lg text-white text-sm font-medium whitespace-nowrap ${
                   isVerified
-                    ? 'bg-green-500 cursor-default'
-                    : 'bg-blue-600 hover:bg-blue-700'
+                    ? 'bg-green-500 dark:bg-green-600 cursor-default'
+                    : 'bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600'
                 } disabled:opacity-50`}
               >
                 {isCodeSent ? '재전송' : '전송'}
               </button>
             </div>
-            {errors.emailId && <p className="text-red-500 text-sm mt-1">{errors.emailId}</p>}
+            {errors.emailId && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.emailId}</p>}
           </div>
         )}
 
-        {/* ===== 인증번호 ===== */}
+        {/* 인증번호 */}
         {isCodeSent && !isVerified && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">인증번호</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">인증번호</label>
             <div className="flex space-x-2">
               <input
                 type="text"
@@ -371,147 +362,150 @@ const RegisterForm = () => {
                 onChange={handleCodeInput}
                 placeholder="인증번호 6자리"
                 maxLength={6}
-                className={`flex-1 border rounded-lg px-3 py-2 placeholder:text-gray-400 text-sm ${
-                  errors.code ? 'border-red-500' : 'border-gray-300'
-                } focus:ring-2 focus:ring-blue-500`}
+                className={`flex-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border rounded-lg px-3 py-2 placeholder:text-gray-400 dark:placeholder:text-gray-500 text-sm ${
+                  errors.code ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                } focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400`}
               />
               <button
                 type="button"
                 onClick={handleVerifyCode}
                 disabled={loading}
-                className="bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 text-sm font-medium whitespace-nowrap disabled:opacity-50"
+                className="bg-blue-600 dark:bg-blue-500 text-white px-3 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 text-sm font-medium whitespace-nowrap disabled:opacity-50"
               >
                 확인
               </button>
             </div>
-            {errors.code && <p className="text-red-500 text-sm mt-1">{errors.code}</p>}
+            {errors.code && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.code}</p>}
           </div>
         )}
 
-        {/* ===== 비밀번호 ===== */}
+        {/* 비밀번호 */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">비밀번호</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">비밀번호</label>
           <input
             type="password"
             value={password}
             onChange={(e) => handlePasswordChange(e.target.value)}
             placeholder="비밀번호를 입력하세요"
-            className={`w-full border rounded-lg px-3 py-2 placeholder:text-gray-400 text-sm ${
-              errors.password ? 'border-red-500' : 'border-gray-300'
-            } focus:ring-2 focus:ring-blue-500`}
+            className={`w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-white border rounded-lg px-3 py-2 placeholder:text-gray-400 dark:placeholder:text-gray-500 text-sm ${
+              errors.password ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+            } focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400`}
           />
-          {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
+          {errors.password && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.password}</p>}
         </div>
 
-        {/* ===== 비밀번호 확인 ===== */}
+        {/* 비밀번호 확인 */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">비밀번호 확인</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">비밀번호 확인</label>
           <input
             type="password"
             value={confirmPassword}
             onChange={(e) => handleConfirmPasswordChange(e.target.value)}
             placeholder="비밀번호를 다시 입력하세요"
-            className={`w-full border rounded-lg px-3 py-2 placeholder:text-gray-400 text-sm ${
-              errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
-            } focus:ring-2 focus:ring-blue-500`}
+            className={`w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-white border rounded-lg px-3 py-2 placeholder:text-gray-400 dark:placeholder:text-gray-500 text-sm ${
+              errors.confirmPassword ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+            } focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400`}
           />
           {errors.confirmPassword && (
-            <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>
+            <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.confirmPassword}</p>
           )}
         </div>
 
-        {/* ===== 이름 ===== */}
+        {/* 이름 */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">이름</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">이름</label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="홍길동"
-            className={`w-full border rounded-lg px-3 py-2 placeholder:text-gray-400 text-sm ${
-              errors.name ? 'border-red-500' : 'border-gray-300'
-            } focus:ring-2 focus:ring-blue-500`}
+            className={`w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-white border rounded-lg px-3 py-2 placeholder:text-gray-400 dark:placeholder:text-gray-500 text-sm ${
+              errors.name ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+            } focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400`}
           />
-          {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+          {errors.name && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.name}</p>}
         </div>
 
-        {/* ===== 생년월일 ===== */}
+        {/* 생년월일 */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">생년월일</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">생년월일</label>
           <input
             type="date"
             value={birthDate}
             max={new Date().toISOString().split('T')[0]}
             onChange={(e) => setBirthDate(e.target.value)}
-            className={`w-full border rounded-lg px-3 py-2 text-sm ${
-              errors.birthDate ? 'border-red-500' : 'border-gray-300'
-            } focus:ring-2 focus:ring-blue-500`}
+            className={`w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-white border rounded-lg px-3 py-2 text-sm ${
+              errors.birthDate ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+            } focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400`}
           />
           {errors.birthDate && (
-            <p className="text-red-500 text-sm mt-1">{errors.birthDate}</p>
+            <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.birthDate}</p>
           )}
         </div>
 
-        {/* ===== 성별 ===== */}
+        {/* 성별 */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">성별</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">성별</label>
           <div className="flex space-x-4">
-            <label className="flex items-center space-x-2 text-sm">
+            <label className="flex items-center space-x-2 text-sm text-gray-900 dark:text-white">
               <input
                 type="radio"
                 name="gender"
                 value="MALE"
                 checked={gender === 'MALE'}
                 onChange={() => setGender(Gender.MALE)}
+                className="text-blue-600 dark:text-blue-400"
               />
               <span>남성</span>
             </label>
-            <label className="flex items-center space-x-2 text-sm">
+            <label className="flex items-center space-x-2 text-sm text-gray-900 dark:text-white">
               <input
                 type="radio"
                 name="gender"
                 value="FEMALE"
                 checked={gender === 'FEMALE'}
                 onChange={() => setGender(Gender.FEMALE)}
+                className="text-blue-600 dark:text-blue-400"
               />
               <span>여성</span>
             </label>
           </div>
-          {errors.gender && <p className="text-red-500 text-sm mt-1">{errors.gender}</p>}
+          {errors.gender && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.gender}</p>}
         </div>
 
-        {/* ===== 이용약관 ===== */}
+        {/* 이용약관 */}
         <div className="flex items-center space-x-2 text-sm">
           <input
             type="checkbox"
             checked={agree}
             onChange={(e) => setAgree(e.target.checked)}
+            className="text-blue-600 dark:text-blue-400"
           />
-          <label className="text-gray-600">
+          <label className="text-gray-600 dark:text-gray-400">
             이용약관 및 개인정보처리방침에 동의합니다
           </label>
         </div>
-        {errors.agree && <p className="text-red-500 text-sm">{errors.agree}</p>}
+        {errors.agree && <p className="text-red-500 dark:text-red-400 text-sm">{errors.agree}</p>}
 
-        {/* ===== 성공/에러 메시지 ===== */}
-        {message && <p className="text-blue-600 text-sm">{message}</p>}
-        {errors.form && <p className="text-red-500 text-sm">{errors.form}</p>}
+        {/* 성공/에러 메시지 */}
+        {message && <p className="text-blue-600 dark:text-blue-400 text-sm">{message}</p>}
+        {errors.form && <p className="text-red-500 dark:text-red-400 text-sm">{errors.form}</p>}
 
-        {/* ===== 제출 버튼 ===== */}
+        {/* 제출 버튼 */}
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-600 text-white py-2 rounded-lg mt-4 hover:bg-blue-700 disabled:bg-gray-400 font-medium text-sm"
+          className="w-full bg-blue-600 dark:bg-blue-500 text-white py-2 rounded-lg mt-4 hover:bg-blue-700 dark:hover:bg-blue-600 disabled:bg-gray-400 dark:disabled:bg-gray-600 font-medium text-sm"
         >
           {loading ? '가입 중...' : '다음'}
         </button>
 
-        {/* ===== 로그인 링크 ===== */}
-        <div className="text-center text-xs text-gray-600 mt-4">
+        {/* 로그인 링크 */}
+        <div className="text-center text-xs text-gray-600 dark:text-gray-400 mt-4">
           이미 계정이 있으신가요?{" "}
           <Link
             href="/login"
-            className="text-blue-600 hover:underline font-medium"
+            className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
           >
             로그인
           </Link>

@@ -39,9 +39,8 @@ const ReportList: FC = () => {
     return <div className="flex justify-center p-10"><LoadingSpinner /></div>;
   }
 
-
   if (error) {
-    return <div className="text-center p-10 text-red-500">오류: {error}</div>;
+    return <div className="text-center p-10 text-red-500 dark:text-red-400">오류: {error}</div>;
   }
 
   return (
@@ -59,8 +58,8 @@ const ReportList: FC = () => {
               />
             ))
           ) : (
-            <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
-              <p className="text-gray-500">해당 조건의 신고 내역이 없습니다.</p>
+            <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+              <p className="text-gray-500 dark:text-gray-400">해당 조건의 신고 내역이 없습니다.</p>
             </div>
           )}
         </div>

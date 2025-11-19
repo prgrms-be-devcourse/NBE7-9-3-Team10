@@ -88,7 +88,7 @@ const UserCard: FC<UserCardProps> = ({ user, onLikeChange, onViewDetail }) => {
         {onViewDetail && (
           <button
             onClick={() => onViewDetail(user.receiverId)}
-            className="absolute top-4 right-4 px-2.5 py-1 text-xs text-[#4F46E5] bg-white border border-[#4F46E5] rounded-md hover:bg-[#EEF2FF] transition-colors whitespace-nowrap z-10"
+            className="absolute top-4 right-4 px-2.5 py-1 text-xs text-blue-600 dark:text-blue-400 bg-white dark:bg-gray-800 border border-blue-600 dark:border-blue-500 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors whitespace-nowrap z-10"
           >
             상세보기
           </button>
@@ -96,12 +96,12 @@ const UserCard: FC<UserCardProps> = ({ user, onLikeChange, onViewDetail }) => {
         <CardHeader>
           <div className="flex justify-between items-start pr-20">
             <div>
-              <CardTitle>{user.name} <span className="text-base font-normal text-gray-500">{user.age}세</span></CardTitle>
+              <CardTitle>{user.name} <span className="text-base font-normal text-gray-500 dark:text-gray-400">{user.age}세</span></CardTitle>
               <CardDescription>{user.university}</CardDescription>
             </div>
             <div className="text-right">
-              <p className="text-2xl font-bold text-[#4F46E5]">{Math.round((user.preferenceScore || 0) * 100)}%</p>
-              <p className="text-sm text-gray-500">매칭률</p>
+              <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{Math.round((user.preferenceScore || 0) * 100)}%</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">매칭률</p>
             </div>
           </div>
         </CardHeader>
@@ -109,40 +109,40 @@ const UserCard: FC<UserCardProps> = ({ user, onLikeChange, onViewDetail }) => {
           <div className="space-y-3">
             {/* 기본 태그 */}
             <div className="flex flex-wrap gap-2">
-              <span className="px-3 py-1 bg-indigo-50 text-indigo-700 text-xs font-semibold rounded-full">
+              <span className="px-3 py-1 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-xs font-semibold rounded-full">
                 {user.gender === 'MALE' ? '남학생' : '여학생'}
               </span>
-              <span className="px-3 py-1 bg-gray-100 text-gray-700 text-xs font-semibold rounded-full">
+              <span className="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-semibold rounded-full">
                 {user.isSmoker ? '🚬 흡연' : '🚭 비흡연'}
               </span>
               {user.mbti && (
-                <span className="px-3 py-1 bg-purple-50 text-purple-700 text-xs font-semibold rounded-full">
+                <span className="px-3 py-1 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-semibold rounded-full">
                   {user.mbti}
                 </span>
               )}
             </div>
 
             {/* 생활 패턴 정보 */}
-            <div className="grid grid-cols-2 gap-2 pt-2 border-t border-gray-100">
+            <div className="grid grid-cols-2 gap-2 pt-2 border-t border-gray-100 dark:border-gray-700">
               {getSleepTimeText(user.sleepTime) && (
                 <div className="flex items-center gap-1.5 text-xs">
-                  <span className="text-gray-500">🌙</span>
-                  <span className="text-gray-700 font-medium">{getSleepTimeText(user.sleepTime)}</span>
+                  <span className="text-gray-500 dark:text-gray-400">🌙</span>
+                  <span className="text-gray-700 dark:text-gray-300 font-medium">{getSleepTimeText(user.sleepTime)}</span>
                 </div>
               )}
               {getCleaningText(user.cleaningFrequency) && (
                 <div className="flex items-center gap-1.5 text-xs">
-                  <span className="text-gray-500">🧹</span>
-                  <span className="text-gray-700 font-medium">{getCleaningText(user.cleaningFrequency)}</span>
+                  <span className="text-gray-500 dark:text-gray-400">🧹</span>
+                  <span className="text-gray-700 dark:text-gray-300 font-medium">{getCleaningText(user.cleaningFrequency)}</span>
                 </div>
               )}
             </div>
 
             {/* 거주 기간 정보 */}
             {(user.startUseDate || user.endUseDate) && (
-              <div className="flex items-center gap-1.5 text-xs pt-2 border-t border-gray-100">
-                <span className="text-gray-500">룸셰어 기간</span>
-                <span className="text-gray-700 font-medium">
+              <div className="flex items-center gap-1.5 text-xs pt-2 border-t border-gray-100 dark:border-gray-700">
+                <span className="text-gray-500 dark:text-gray-400">룸셰어 기간</span>
+                <span className="text-gray-700 dark:text-gray-300 font-medium">
                   {user.startUseDate && new Date(user.startUseDate).toLocaleDateString('ko-KR', { year: '2-digit', month: 'short', day: 'numeric' })}
                   {user.startUseDate && user.endUseDate && ' ~ '}
                   {user.endUseDate && new Date(user.endUseDate).toLocaleDateString('ko-KR', { year: '2-digit', month: 'short', day: 'numeric' })}
@@ -156,7 +156,7 @@ const UserCard: FC<UserCardProps> = ({ user, onLikeChange, onViewDetail }) => {
             <button
               onClick={handleLikeClick}
               disabled={isLoading}
-              className="w-full py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 bg-[#EF4444] text-white hover:bg-[#DC2626] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 bg-red-500 dark:bg-red-600 text-white hover:bg-red-600 dark:hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <>
@@ -179,7 +179,7 @@ const UserCard: FC<UserCardProps> = ({ user, onLikeChange, onViewDetail }) => {
             <button
               onClick={handleLikeClick}
               disabled={isLoading}
-              className="w-full py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <>

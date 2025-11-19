@@ -33,8 +33,8 @@ export default function PendingReviewList() {
     if (error) {
         return (
             <div className="text-center py-12">
-                <p className="text-red-500 text-lg">에러가 발생했습니다.</p>
-                <p className="text-gray-400 text-sm mt-2">{error.message}</p>
+                <p className="text-red-500 dark:text-red-400 text-lg">에러가 발생했습니다.</p>
+                <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">{error.message}</p>
             </div>
         );
     }
@@ -42,9 +42,9 @@ export default function PendingReviewList() {
     if (!pendingReviews || pendingReviews.length === 0) {
         return (
             <div className="text-center py-12">
-                <MessageSquare className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500 text-lg">대기 중인 후기가 없습니다.</p>
-                <p className="text-gray-400 text-sm mt-2">
+                <MessageSquare className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                <p className="text-gray-500 dark:text-gray-400 text-lg">대기 중인 후기가 없습니다.</p>
+                <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">
                     매칭이 완료되고 일정 기간이 지나면 후기를 작성할 수 있습니다.
                 </p>
             </div>
@@ -56,29 +56,29 @@ export default function PendingReviewList() {
             {pendingReviews.map((item) => (
                 <div
                     key={item.matchId}
-                    className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow"
+                    className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow"
                 >
                     <div className="flex flex-col gap-3">
                         {/* 이름 */}
                         <div>
-                            <p className="font-bold text-lg text-gray-900 mb-1">
+                            <p className="font-bold text-lg text-gray-900 dark:text-white mb-1">
                                 {item.revieweeName}
                             </p>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
                                 {item.revieweeUniversity}
                             </p>
                         </div>
 
                         {/* 종료일 */}
                         {item.matchEndDate && (
-                            <p className="text-xs text-gray-500">
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
                                 종료: {item.matchEndDate}
                             </p>
                         )}
 
                         {/* 후기 작성까지 남은 기간 */}
                         {!item.canCreateReview && item.remainingDays && (
-                            <p className="text-xs text-orange-600 font-medium">
+                            <p className="text-xs text-orange-600 dark:text-orange-400 font-medium">
                                 후기 작성까지 {item.remainingDays}일 남았습니다.
                             </p>
                         )}
