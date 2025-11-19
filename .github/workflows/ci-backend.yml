@@ -2,12 +2,12 @@ name: Backend CI
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main ]
     paths:
       - 'backend/**'
       - '.github/workflows/ci-backend.yml'
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main ]
     paths:
       - 'backend/**'
       - '.github/workflows/ci-backend.yml'
@@ -19,8 +19,6 @@ jobs:
     services:
       redis:
         image: redis:7-alpine
-        ports:
-          - 6379:6379
         options: >-
           --health-cmd "redis-cli ping"
           --health-interval 10s
@@ -28,8 +26,6 @@ jobs:
           --health-retries 5
       mysql:
         image: mysql:8.0.35
-        ports:
-          - 3306:3306
         env:
           MYSQL_ROOT_PASSWORD: rootpassword
           MYSQL_DATABASE: unimate_test
@@ -65,7 +61,7 @@ jobs:
         run: ./gradlew test
         working-directory: backend/unimate
         env:
-          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/unimate_test?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8
+          SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/unimate_test?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8
           SPRING_DATASOURCE_USERNAME: unimate
           SPRING_DATASOURCE_PASSWORD: unimatepassword
 
