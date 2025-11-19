@@ -110,6 +110,10 @@ function useChatroom(chatroomId: number) {
           // 채팅방 진입 알림 실패는 무시
         }
 
+        // 현재 사용자 ID 가져오기
+        const currentUserId = localStorage.getItem('userId')
+        const currentUserIdNum = currentUserId ? parseInt(currentUserId, 10) : null
+
         // 채팅방 메시지 구독
         subRef.current = ws.subscribe(`/sub/chatroom.${chatroomId}`, async (msg) => {
           try {
@@ -122,7 +126,7 @@ function useChatroom(chatroomId: number) {
             })
             
             // 새 메시지가 오면 즉시 읽음 처리 (상대방이 보낸 메시지만)
-            if (body.senderId !== currentUserId) {
+            if (currentUserIdNum && body.senderId !== currentUserIdNum) {
               try {
                 const { apiClient } = await import('@/lib/services/api')
                 await apiClient.post(`/api/v1/chatrooms/${chatroomId}/read`, {
