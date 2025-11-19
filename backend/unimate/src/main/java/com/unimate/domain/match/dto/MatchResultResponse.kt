@@ -19,6 +19,7 @@ data class MatchResultResponse(
         val preferenceScore: BigDecimal,
         val createdAt: LocalDateTime,
         val updatedAt: LocalDateTime,
-        val confirmedAt: LocalDateTime
+        val confirmedAt: LocalDateTime,
+        val rematchRound: Int = 0
     )
 }

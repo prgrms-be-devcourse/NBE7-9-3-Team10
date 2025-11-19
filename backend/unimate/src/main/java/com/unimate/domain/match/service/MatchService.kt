@@ -6,11 +6,14 @@ import com.unimate.domain.match.dto.MatchRecommendationResponse.MatchRecommendat
 import com.unimate.domain.match.dto.MatchStatusResponse.SummaryInfo
 import com.unimate.domain.match.entity.Match
 import com.unimate.domain.match.entity.Match.Companion.createLike
+import com.unimate.domain.match.entity.Match.Companion.createRematch
 import com.unimate.domain.match.entity.MatchStatus
 import com.unimate.domain.match.entity.MatchType
 import com.unimate.domain.match.repository.MatchRepository
+import com.unimate.domain.message.service.MessageService
 import com.unimate.domain.notification.entity.NotificationType
 import com.unimate.domain.notification.service.NotificationService
+import com.unimate.domain.review.service.MatchRematchService
 import com.unimate.domain.user.user.entity.Gender
 import com.unimate.domain.user.user.entity.User
 import com.unimate.domain.user.user.repository.UserRepository
@@ -28,6 +31,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.util.*
 
 @Service
 @Transactional(readOnly = true)
@@ -40,7 +44,9 @@ class MatchService(
     private val chatroomService: ChatroomService,
     private val notificationService: NotificationService,
     private val userMatchPreferenceRepository: UserMatchPreferenceRepository,
-    private val matchCacheService: MatchCacheService
+    private val matchCacheService: MatchCacheService,
+    private val matchRematchService: MatchRematchService,
+    private val messageService: MessageService
 ) {
 
     companion object {
@@ -178,18 +184,18 @@ class MatchService(
         senderId: Long
     ): MatchRecommendationItem {
         val candidateProfile = convertToUserProfile(candidate)
+        
+        // 실제 매칭 상태 조회 - 가장 최근 매칭 선택
+        val allMatches = matchRepository.findAllBySenderIdAndReceiverId(senderId, candidate.userId)
+        val existingMatch = allMatches.firstOrNull()
+        
+        // 유사도 점수 계산
         val similarityScore = BigDecimal.valueOf(
             similarityCalculator.calculateSimilarity(senderPreference, candidateProfile)
         )
 
-        // 실제 매칭 상태 조회
-        val existingMatch = matchRepository.findBySenderIdAndReceiverId(
-            senderId,
-            candidate.userId
-        )
-
-        val matchType = existingMatch.map(Match::matchType).orElse(MatchType.NONE)
-        val matchStatus = existingMatch.map(Match::matchStatus).orElse(MatchStatus.NONE)
+        val matchType = existingMatch?.matchType ?: MatchType.NONE
+        val matchStatus = existingMatch?.matchStatus ?: MatchStatus.NONE
 
         // 디버깅 로그
         log.info(
@@ -222,23 +228,14 @@ class MatchService(
      * + REQUEST + PENDING 상태인 경우도 제외 (상호 좋아요로 채팅방이 열린 경우)
      */
     private fun isAlreadyMatched(senderId: Long, candidateId: Long): Boolean {
-        // matchStatus == ACCEPTED는 오직 양쪽 모두 확정한 경우만. PENDING도 확인하도록 수정.
-        val iSentAccepted = matchRepository.findBySenderIdAndReceiverId(senderId, candidateId)
-            .map { match ->
-                match.matchType == MatchType.REQUEST &&
-                        (match.matchStatus == MatchStatus.ACCEPTED || match.matchStatus == MatchStatus.PENDING)
-            }
-            .orElse(false)
-
-        // 상대방이 나에게 보낸 매칭이 ACCEPTED 상태인지 확인. PENDING도 확인하도록 수정.
-        val theySentAccepted = matchRepository.findBySenderIdAndReceiverId(candidateId, senderId)
-            .map { match ->
-                match.matchType == MatchType.REQUEST &&
-                        (match.matchStatus == MatchStatus.ACCEPTED || match.matchStatus == MatchStatus.PENDING)
-            }
-            .orElse(false)
-
-        return iSentAccepted || theySentAccepted
+        // 양방향으로 모든 매칭 조회 후 필터링
+        val allMatches = matchRepository.findAllMatchesBetweenUsers(senderId, candidateId)
+        
+        // REQUEST 타입이고 ACCEPTED 또는 PENDING 상태인 매칭이 있는지 확인
+        return allMatches.any { match ->
+            match.matchType == MatchType.REQUEST &&
+            (match.matchStatus == MatchStatus.ACCEPTED || match.matchStatus == MatchStatus.PENDING)
+        }
     }
 
     // 후보 프로필 상세 조회 (Redis 캐시 사용)
@@ -265,14 +262,16 @@ class MatchService(
             ?: throw notFound("상대방 프로필을 찾을 수 없습니다.")
 
         val receiverProfile = convertToUserProfile(cachedReceiver)
+        
         val similarityScore = BigDecimal.valueOf(
             similarityCalculator.calculateSimilarity(senderPreference, receiverProfile)
         )
 
-        val existingMatch = matchRepository.findBySenderIdAndReceiverId(senderId, receiverId)
+        val existingMatch = matchRepository.findAllBySenderIdAndReceiverId(senderId, receiverId)
+            .firstOrNull()
 
-        val matchType = existingMatch.map(Match::matchType).orElse(MatchType.NONE)
-        val matchStatus = existingMatch.map(Match::matchStatus).orElse(MatchStatus.NONE)
+        val matchType = existingMatch?.matchType ?: MatchType.NONE
+        val matchStatus = existingMatch?.matchStatus ?: MatchStatus.NONE
 
         return MatchRecommendationDetailResponse(
             cachedReceiver.userId,
@@ -310,7 +309,7 @@ class MatchService(
     @Transactional
     fun confirmMatch(matchId: Long, userId: Long): Match {
         val match = matchRepository.findByIdWithUsers(matchId)
-            .orElseThrow { notFound("매칭을 찾을 수 없습니다.") }
+            ?: throw notFound("매칭을 찾을 수 없습니다.")
 
         val senderId = match.sender.id ?: throw internalServerError("송신자 ID가 null입니다.")
         val receiverId = match.receiver.id ?: throw internalServerError("수신자 ID가 null입니다.")
@@ -343,7 +342,7 @@ class MatchService(
     @Transactional
     fun rejectMatch(matchId: Long, userId: Long): Match {
         val match = matchRepository.findByIdWithUsers(matchId)
-            .orElseThrow { notFound("매칭을 찾을 수 없습니다.") }
+            ?: throw notFound("매칭을 찾을 수 없습니다.")
 
         val senderId = match.sender.id ?: throw internalServerError("송신자 ID가 null입니다.")
         val receiverId = match.receiver.id ?: throw internalServerError("수신자 ID가 null입니다.")
@@ -429,17 +428,11 @@ class MatchService(
         notificationService.deleteNotificationBySender(receiverId, NotificationType.LIKE_CANCELED, senderId)
 
         // 양방향으로 기존 '좋아요' 기록이 있는지 확인
-        val existingMatchOpt = matchRepository.findLikeBetweenUsers(senderId, receiverId)
+        val existingMatches = matchRepository.findAllLikesBetweenUsers(senderId, receiverId)
+        val existingMatch = existingMatches.firstOrNull()
 
-        if (existingMatchOpt.isPresent) {
+        if (existingMatch != null) {
             // 기존 기록이 있는 경우
-            val existingMatch = existingMatchOpt.get()
-
-            // 이미 요청(REQUEST) 단계이거나, 내가 이미 보낸 '좋아요'인 경우 중복 처리
-            if (existingMatch.matchType == MatchType.REQUEST) {
-                throw conflict("이미 룸메이트 요청이 진행 중입니다.")
-            }
-
             val existingMatchSenderId = existingMatch.sender.id
                 ?: throw internalServerError("기존 매칭의 송신자 ID가 null입니다.")
 
@@ -535,8 +528,9 @@ class MatchService(
         val sender = userRepository.findById(senderId)
             .orElseThrow { notFound("전송하는 사용자를 찾을 수 없습니다.") }
 
-        val like = matchRepository.findBySenderIdAndReceiverIdAndMatchType(senderId, receiverId, MatchType.LIKE)
-            .orElseThrow { notFound("취소할 '좋아요' 기록이 존재하지 않습니다.") }
+        val likeMatches = matchRepository.findAllBySenderReceiverAndType(senderId, receiverId, MatchType.LIKE)
+        val like = likeMatches.firstOrNull() 
+            ?: throw notFound("취소할 '좋아요' 기록이 존재하지 않습니다.")
 
         // 기존 '좋아요' 알림 삭제
         notificationService.deleteNotificationBySender(receiverId, NotificationType.LIKE, senderId)
@@ -590,5 +584,107 @@ class MatchService(
     private fun validateUserMatchPreference(userId: Long) {
         userMatchPreferenceRepository.findByUserId(userId)
             .orElseThrow { notFound("매칭 선호도가 등록되지 않은 사용자입니다.") }
+    }
+
+    /**
+     * 재매칭 요청
+     */
+    @Transactional
+    fun requestRematch(originalMatchId: Long, requesterId: Long): Match {
+        val originalMatch = matchRepository.findByIdWithUsers(originalMatchId)
+            ?: throw notFound("원본 매칭을 찾을 수 없습니다.")
+
+        // 재매칭 가능 여부 확인 (후기 기반)
+        val nextRound = matchRematchService.validateAndGetNextRound(originalMatch, requireReview = true)
+
+        val senderId = originalMatch.sender.id ?: throw internalServerError("송신자 ID가 null입니다.")
+        val receiverId = originalMatch.receiver.id ?: throw internalServerError("수신자 ID가 null입니다.")
+
+        // 요청자가 매칭 참여자인지 확인
+        require(requesterId == senderId || requesterId == receiverId) {
+            throw forbidden("매칭 참여자만 재매칭을 요청할 수 있습니다.")
+        }
+
+        // 재매칭 요청자와 상대방 결정
+        val rematchSender = if (requesterId == senderId) originalMatch.sender else originalMatch.receiver
+        val rematchReceiver = if (requesterId == senderId) originalMatch.receiver else originalMatch.sender
+
+        val rematchSenderId = rematchSender.id ?: throw internalServerError("재매칭 요청자 ID가 null입니다.")
+        val rematchReceiverId = rematchReceiver.id ?: throw internalServerError("재매칭 상대방 ID가 null입니다.")
+
+        // 기존 매칭과 동일한 사용자 조합의 재매칭이 이미 존재하는지 확인
+        val allMatches = matchRepository.findBySenderIdOrReceiverWithUsers(rematchSenderId)
+        val existingRematch = allMatches
+            .filter { 
+                (it.sender.id == rematchSenderId && it.receiver.id == rematchReceiverId) ||
+                (it.sender.id == rematchReceiverId && it.receiver.id == rematchSenderId)
+            }
+            .firstOrNull { it.rematchRound == nextRound }
+
+        if (existingRematch != null) {
+            throw conflict("이미 재매칭 요청이 진행 중입니다.")
+        }
+
+        val preferenceScore = originalMatch.preferenceScore
+
+        // 재매칭 생성
+        val rematch = createRematch(
+            sender = rematchSender,
+            receiver = rematchReceiver,
+            preferenceScore = preferenceScore,
+            rematchRound = nextRound
+        )
+
+        val savedRematch = matchRepository.save(rematch)
+
+        // 채팅방 생성 (기존 채팅방이 있으면 재사용)
+        var chatroomId: Long? = null
+        try {
+            val chatroomResponse = chatroomService.createIfNotExists(rematchSenderId, rematchReceiverId)
+            chatroomId = chatroomResponse.chatroomId
+        } catch (e: Exception) {
+            log.warn("재매칭 채팅방 생성 실패: ${e.message}")
+        }
+
+        // 재매칭 요청 알림 전송
+        try {
+            val senderName = rematchSender.name ?: "알 수 없음"
+            notificationService.createNotification(
+                userId = rematchReceiverId,
+                type = NotificationType.MATCH,
+                message = "${senderName}님이 재매칭을 요청했습니다.",
+                senderName = senderName,
+                senderId = rematchSenderId
+            )
+            log.info("재매칭 알림 전송 성공 - receiverId: {}, senderId: {}", rematchReceiverId, rematchSenderId)
+        } catch (e: Exception) {
+            log.error("재매칭 알림 전송 실패 - receiverId: {}, senderId: {}, error: {}", 
+                rematchReceiverId, rematchSenderId, e.message, e)
+        }
+
+        // 채팅방에 재매칭 요청 메시지 전송
+        if (chatroomId != null) {
+            try {
+                val senderName = rematchSender.name ?: "알 수 없음"
+                val messageContent = "🔄 ${senderName}님이 재매칭을 요청했습니다. 채팅방에서 수락/거절할 수 있습니다."
+                val clientMessageId = "rematch-${savedRematch.id}-${UUID.randomUUID()}"
+                
+                messageService.sendText(
+                    me = rematchSenderId,
+                    chatroomId = chatroomId,
+                    content = messageContent,
+                    clientMessageId = clientMessageId
+                )
+                log.info("재매칭 채팅방 메시지 전송 성공 - chatroomId: {}, senderId: {}", chatroomId, rematchSenderId)
+            } catch (e: Exception) {
+                log.warn("재매칭 채팅방 메시지 전송 실패 - chatroomId: {}, senderId: {}, error: {}", 
+                    chatroomId, rematchSenderId, e.message)
+            }
+        }
+
+        log.info("재매칭 요청 생성 완료 - originalMatchId: {}, rematchId: {}, round: {}", 
+            originalMatchId, savedRematch.id, nextRound)
+
+        return savedRematch
     }
 }
