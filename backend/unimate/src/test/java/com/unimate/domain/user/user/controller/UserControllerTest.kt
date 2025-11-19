@@ -101,8 +101,8 @@ class UserControllerTest {
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.name").value("새로운이름"))
 
-        val updated = userRepository.findByEmail(testEmail).orElseThrow()
-        assertThat(updated.name).isEqualTo("새로운이름")
+        val updated = userRepository.findByEmail(testEmail)
+        assertThat(updated?.name).isEqualTo("새로운이름")
     }
 
     @Test
@@ -124,10 +124,10 @@ class UserControllerTest {
                 .content(objectMapper.writeValueAsString(request))
         )
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.email").value(fullEmail))  // ← 완전한 이메일로 검증
+            .andExpect(jsonPath("$.email").value(fullEmail))
 
-        val updated = userRepository.findByEmail(fullEmail).orElseThrow()
-        assertThat(updated.email).isEqualTo(fullEmail)
+        val updated = userRepository.findByEmail(fullEmail)
+        assertThat(updated?.email).isEqualTo(fullEmail)
     }
 
     @Test

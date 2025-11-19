@@ -18,21 +18,21 @@ class UserService(
     private val matchCacheService: MatchCacheService,
     private val schoolService: SchoolService
 ) {
-    private val log = LoggerFactory.getLogger(UserService::class.java)
-
-    @Transactional
-    fun findByEmail(email: String): User {
-        return userRepository.findByEmail(email)
-            .orElseThrow { ServiceException.notFound("사용자를 찾을 수 없습니다.") }
+    companion object {
+        private val log = LoggerFactory.getLogger(UserService::class.java)
     }
 
     @Transactional
-    fun updateName(email: String, name: String): User {
-        val user = userRepository.findByEmail(email)
-            .orElseThrow { ServiceException.notFound("사용자를 찾을 수 없습니다.") }
-        user.updateName(name)
+    fun findByEmail(email: String): User =
+        userRepository.findByEmail(email)
+            ?: throw ServiceException.notFound("사용자를 찾을 수 없습니다.")
 
-        user.id?.let { userId ->
+    @Transactional
+    fun updateName(email: String, name: String): User {
+        val user = findByEmail(email)
+        user.name = name
+
+        user.id?.also { userId ->
             matchCacheService.evictUserProfileCache(userId)
             log.info("유저 이름 변경 - 캐시 무효화 (userId: {})", userId)
         }
@@ -69,7 +69,7 @@ class UserService(
             throw ServiceException.badRequest("이미 등록된 이메일입니다.")
         }
 
-        user.updateEmail(newEmail)
+        user.email = newEmail
 
         verificationRepository.delete(verification)
 

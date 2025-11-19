@@ -25,12 +25,13 @@ interface MatchInfo {
 
 export default function ChatRoomView({ chatroomId }: ChatRoomViewProps) {
   const router = useRouter()
-  const { messages, send, reconnect } = useChatroom(chatroomId)
+  const { messages, send, reconnect, isPartnerBlocked } = useChatroom(chatroomId)
   const [text, setText] = useState('')
   const [partnerName, setPartnerName] = useState('채팅 상대')
   const [partnerInfo, setPartnerInfo] = useState('')
   const [isPartnerDeleted, setIsPartnerDeleted] = useState(false)
   const [isPartnerLeft, setIsPartnerLeft] = useState(false)
+  const [isBlockedByPartner, setIsBlockedByPartner] = useState(false)  // 상대방이 나를 차단했는지
   const [matchInfo, setMatchInfo] = useState<MatchInfo | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
@@ -59,6 +60,9 @@ export default function ChatRoomView({ chatroomId }: ChatRoomViewProps) {
         // 상대방이 나간 상태인지 확인
         const isPartnerLeft = chatroomData.user1Status === 'CLOSED' || chatroomData.user2Status === 'CLOSED'
         setIsPartnerLeft(isPartnerLeft)
+        
+        // 상대방이 나를 차단했는지 확인
+        setIsBlockedByPartner(chatroomData.isBlockedByPartner || false)
 
         // 매칭 정보 조회
         const currentUserId = typeof window !== 'undefined' ? 
@@ -179,6 +183,16 @@ export default function ChatRoomView({ chatroomId }: ChatRoomViewProps) {
 
   const sendMessage = (content: string) => {
     if (!content.trim()) return
+    // 차단된 사용자에게는 메시지를 보낼 수 없음
+    if (isPartnerBlocked) {
+      alert('차단된 사용자에게는 메시지를 보낼 수 없습니다.')
+      return
+    }
+    // 상대방이 나를 차단한 경우 메시지를 보낼 수 없음
+    if (isBlockedByPartner) {
+      alert('메시지를 보낼 수 없습니다.')
+      return
+    }
     send(content)
     setText('')
   }
@@ -315,6 +329,8 @@ export default function ChatRoomView({ chatroomId }: ChatRoomViewProps) {
                   <p className="text-sm text-red-400">이 사용자는 탈퇴했습니다</p>
                 ) : isPartnerLeft ? (
                   <p className="text-sm text-red-500">상대방이 채팅방에서 나갔습니다</p>
+                ) : isPartnerBlocked ? (
+                  <p className="text-sm text-orange-500">이 사용자를 차단했습니다</p>
                 ) : (
                   partnerInfo && <p className="text-sm text-[#6B7280]">{partnerInfo}</p>
                 )}
@@ -444,6 +460,14 @@ export default function ChatRoomView({ chatroomId }: ChatRoomViewProps) {
           ) : isPartnerLeft ? (
             <div className="text-center py-4 text-gray-500 bg-gray-50 rounded-xl">
               <p className="text-sm">상대방이 채팅방에서 나갔습니다</p>
+            </div>
+          ) : isPartnerBlocked ? (
+            <div className="text-center py-4 text-orange-500 bg-orange-50 rounded-xl border border-orange-200">
+              <p className="text-sm font-medium">차단된 사용자입니다. 메시지를 보낼 수 없습니다.</p>
+            </div>
+          ) : isBlockedByPartner ? (
+            <div className="text-center py-4 text-gray-500 bg-gray-50 rounded-xl">
+              <p className="text-sm font-medium">메시지를 보낼 수 없습니다.</p>
             </div>
           ) : (
             <div className="flex gap-3">

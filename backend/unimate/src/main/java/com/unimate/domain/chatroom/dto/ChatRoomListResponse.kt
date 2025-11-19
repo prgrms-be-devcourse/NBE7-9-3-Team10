@@ -8,6 +8,7 @@ data class ChatRoomListResponse(
         val partnerName: String, // 상대방 이름
         val lastMessage: LastMessageSummary?,
         val unreadCount: Long,
+        val isBlocked: Boolean,
         val status: String,      // ACTIVE | CLOSED
         val updatedAt: String    // ISO_LOCAL_DATE_TIME
     )

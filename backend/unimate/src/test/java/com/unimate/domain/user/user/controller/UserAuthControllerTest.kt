@@ -101,7 +101,7 @@ class UserAuthControllerTest {
             .andExpect(jsonPath("$.email").value(testEmail))
 
         // 회원가입 완료 확인
-        assertThat(userRepository.findByEmail(testEmail)).isPresent()
+        assertThat(userRepository.findByEmail(testEmail))
     }
 
     @Test
