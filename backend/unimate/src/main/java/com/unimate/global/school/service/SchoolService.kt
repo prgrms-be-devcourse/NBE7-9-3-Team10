@@ -2,6 +2,7 @@ package com.unimate.global.school.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.unimate.domain.verification.dto.SchoolListResponse
 import com.unimate.global.csv.generator.SchoolDomainData
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -39,6 +40,16 @@ class SchoolService(
     fun getPrimarySchoolDomain(schoolName: String): String? {
         val domains = getSchoolDomains(schoolName)
         return domains.firstOrNull()
+    }
+
+    fun getAllSchools(): List<SchoolListResponse> {
+        val schools = loadSchoolDomains()
+        return schools.map { school ->
+            SchoolListResponse(
+                schoolName = school.schoolName,
+                domain = school.domains.firstOrNull() ?: ""
+            )
+        }
     }
 
     private fun loadSchoolDomains(): List<SchoolDomainData> {

@@ -1,4 +1,4 @@
-package com.unimate.global.school.dto
+package com.unimate.domain.verification.dto
 
 import com.fasterxml.jackson.annotation.JsonProperty
 
