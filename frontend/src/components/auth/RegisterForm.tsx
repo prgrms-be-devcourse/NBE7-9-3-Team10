@@ -289,7 +289,7 @@ const RegisterForm = () => {
             {/* 드롭다운 목록 */}
             {showDropdown && !isSchoolVerified && filteredSchools.length > 0 && (
               <div className="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-lg mt-1 max-h-48 overflow-y-auto z-10 shadow-lg">
-                {filteredSchools.slice(0, 10).map((school, idx) => (
+                {filteredSchools.slice(0, 100).map((school, idx) => (
                   <button
                     key={idx}
                     type="button"
@@ -299,11 +299,6 @@ const RegisterForm = () => {
                     {school.schoolName}
                   </button>
                 ))}
-                {filteredSchools.length > 10 && (
-                  <div className="px-3 py-2 text-xs text-gray-500 border-t border-gray-100 text-center">
-                    {filteredSchools.length}개 결과 (처음 10개만 표시)
-                  </div>
-                )}
               </div>
             )}
 
