@@ -1,6 +1,6 @@
 import { api, API_ENDPOINTS } from '@/lib/services/api';
 import { ApiResponse } from '@/types/api';
-import { MatchPreference } from '@/types/profile'; // GEMINI: MatchPreference 타입 임포트 경로 수정
+import { MatchPreference } from '@/types/profile'; 
 
 // 매칭 관련 API 서비스
 export class MatchService {
@@ -98,6 +98,13 @@ export class MatchService {
     content: string;
   }): Promise<ApiResponse<any>> {
     return api.post<ApiResponse<any>>('/api/v1/report', reportData);
+  }
+
+  /**
+   * 재매칭 요청
+   */
+  static async requestRematch(matchId: number): Promise<ApiResponse<any>> {
+    return api.post<ApiResponse<any>>(`${API_ENDPOINTS.MATCHES}/${matchId}/rematch`);
   }
 }
 

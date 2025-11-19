@@ -107,6 +107,14 @@ export default function MatchesPage() {
           setFilteredUsers(recommendations);
         } catch (err) {
           console.error('❌ 필터 적용 실패:', err);
+          if (err && typeof err === 'object') {
+            console.error('에러 상세:', {
+              message: (err as any).message,
+              status: (err as any).status,
+              response: (err as any).response,
+              data: (err as any).response?.data,
+            });
+          }
           setError(getErrorMessage(err));
         } finally {
           setIsLoading(false);

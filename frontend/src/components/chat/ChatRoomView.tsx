@@ -18,9 +18,9 @@ interface MatchInfo {
   matchStatus: string
   partnerId: number
   partnerName: string
-  myResponse?: string          // 내 응답 상태
-  partnerResponse?: string     // 상대방 응답 상태
-  waitingForPartner?: boolean  // 상대방 응답 대기 중
+  myResponse?: string          
+  partnerResponse?: string     
+  waitingForPartner?: boolean  
 }
 
 export default function ChatRoomView({ chatroomId }: ChatRoomViewProps) {
@@ -76,14 +76,27 @@ export default function ChatRoomView({ chatroomId }: ChatRoomViewProps) {
           // 백엔드 DTO 구조: { matches: [...], summary: {...} }
           const items = matchData.matches || matchData.items || []
 
-          // 현재 채팅 상대와의 매칭 정보 찾기
-          const currentMatch = items.find((item: any) => 
+          // 현재 채팅 상대와의 모든 매칭 정보 찾기 (재매칭 포함)
+          const allMatches = items.filter((item: any) => 
             (item.senderId === currentUserId && item.receiverId === partnerId) ||
             (item.senderId === partnerId && item.receiverId === currentUserId)
           )
 
+          // REQUEST 타입이고 PENDING 상태인 매칭 중 가장 최근 것 선택 (재매칭 우선)
+          const currentMatch = allMatches
+            .filter((item: any) => 
+              item.matchType === 'REQUEST' && 
+              item.matchStatus === 'PENDING'
+            )
+            .sort((a: any, b: any) => {
+              // createdAt 기준으로 내림차순 정렬 (가장 최근 것 우선)
+              const dateA = new Date(a.createdAt).getTime()
+              const dateB = new Date(b.createdAt).getTime()
+              return dateB - dateA
+            })[0] // 가장 최근 매칭 선택
+
           // REQUEST 타입인 매칭 정보 처리
-          if (currentMatch && currentMatch.matchType === 'REQUEST') {
+          if (currentMatch) {
             const myResponse = currentMatch.myResponse || 'PENDING'
             const partnerResponse = currentMatch.partnerResponse || 'PENDING'
             
@@ -214,7 +227,7 @@ export default function ChatRoomView({ chatroomId }: ChatRoomViewProps) {
       const isFullyMatched = finalStatus === 'ACCEPTED'
       
       if (isFullyMatched) {
-        // 🎉 양쪽 모두 확정 완료 - 매칭 성사!
+        // 양쪽 모두 확정 완료 - 매칭 성사
         send(`🎉 [매칭 성사!] 축하합니다! ${matchInfo.partnerName}님과 룸메이트 매칭이 최종 확정되었습니다!`)
         
         setToast({ 
@@ -222,7 +235,7 @@ export default function ChatRoomView({ chatroomId }: ChatRoomViewProps) {
           type: 'success' 
         })
       } else {
-        // ⏰ 한쪽만 확정 - 상대방 응답 대기
+        // 한쪽만 확정 - 상대방 응답 대기
         send(`✅ [매칭 확정] 룸메이트 확정을 수락했습니다! 상대방의 응답을 기다리고 있습니다.`)
         
         setToast({ 
@@ -264,7 +277,7 @@ export default function ChatRoomView({ chatroomId }: ChatRoomViewProps) {
     try {
       await MatchService.rejectMatch(matchInfo.matchId)
       
-      // 📢 상대방에게 자동 메시지 전송
+      // 상대방에게 자동 메시지 전송
       send(`❌ [매칭 거절] 죄송하지만 이번 매칭은 거절했습니다. 더 나은 기회에 인연이 닿기를 바랍니다.`)
       
       // 거절 완료 안내
