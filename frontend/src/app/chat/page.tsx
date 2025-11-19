@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { User, MoreVertical, Trash2, Flag } from 'lucide-react'
+import { User, MoreVertical, Trash2, Flag, Ban, Unlock } from 'lucide-react'
 import AppHeader from '@/components/layout/AppHeader'
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
 import { apiClient } from '@/lib/services/api'
 import ReportModal from '@/components/matches/ReportModal'
 import { MatchService } from '@/lib/services/matchService'
+import { BlockService } from '@/lib/services/blockService'
 
 interface ChatRoom {
   chatroomId: number
@@ -21,6 +22,7 @@ interface ChatRoom {
   partnerName?: string
   unreadCount?: number
   isNew?: boolean // NEW 배지 표시 여부
+  isBlocked?: boolean // 차단 상태
 }
 
 export default function ChatListPage() {
@@ -30,7 +32,9 @@ export default function ChatListPage() {
   const [showMenu, setShowMenu] = useState<number | null>(null)
   const [showDeleteModal, setShowDeleteModal] = useState<number | null>(null)
   const [showReportModal, setShowReportModal] = useState<{ chatId: number; partnerName: string } | null>(null)
+  const [showBlockModal, setShowBlockModal] = useState<{ chatId: number; partnerId: number; partnerName: string; isBlocked: boolean } | null>(null)
   const [isReporting, setIsReporting] = useState(false)
+  const [isBlocking, setIsBlocking] = useState(false)
 
   // 채팅방 목록 조회 함수
   const fetchChatrooms = async () => {
@@ -65,6 +69,9 @@ export default function ChatListPage() {
             // 백엔드에서 이미 partnerName을 보내주므로 별도 조회 불필요
             const partnerName = chat.partnerName || '알 수 없는 사용자'
             
+            // 차단 상태 확인
+            const isBlocked = chat.isBlocked || false
+            
             // NEW 배지 표시 여부 확인 (localStorage에서 방문 기록 확인)
             const visitedChatrooms = JSON.parse(localStorage.getItem('visitedChatrooms') || '[]')
             const isNew = !visitedChatrooms.includes(chat.chatroomId)
@@ -75,9 +82,13 @@ export default function ChatListPage() {
               lastMessageTime: lastMsg ? lastMsg.createdAt : chat.createdAt,
               partnerName: partnerName,
               unreadCount: unreadCount,
-              isNew: isNew
+              isNew: isNew,
+              isBlocked: isBlocked
             }
           } catch (error) {
+            // 차단 상태 확인
+            const isBlocked = chat.isBlocked || false
+            
             // NEW 배지 표시 여부 확인 (localStorage에서 방문 기록 확인)
             const visitedChatrooms = JSON.parse(localStorage.getItem('visitedChatrooms') || '[]')
             const isNew = !visitedChatrooms.includes(chat.chatroomId)
@@ -88,7 +99,8 @@ export default function ChatListPage() {
               lastMessageTime: chat.createdAt,
               partnerName: chat.partnerName || '알 수 없는 사용자',
               unreadCount: 0,
-              isNew: isNew
+              isNew: isNew,
+              isBlocked: isBlocked
             }
           }
         })
@@ -244,6 +256,34 @@ export default function ChatListPage() {
     }
   }
 
+  const handleBlockUser = async () => {
+    if (!showBlockModal) return
+    
+    setIsBlocking(true)
+    try {
+      if (showBlockModal.isBlocked) {
+        // 차단 해제
+        await BlockService.unblockUser(showBlockModal.partnerId)
+        alert('차단이 해제되었습니다.')
+      } else {
+        // 차단
+        await BlockService.blockUser(showBlockModal.partnerId)
+        alert('사용자를 차단했습니다. 이 사용자의 메시지는 더 이상 받지 않습니다.')
+      }
+      
+      // 채팅 목록 새로고침
+      await fetchChatrooms()
+      setShowBlockModal(null)
+      setShowMenu(null)
+    } catch (error: any) {
+      console.error('차단 처리 실패:', error)
+      const errorMessage = error.message || error.response?.data?.message || '차단 처리에 실패했습니다.'
+      alert(errorMessage)
+    } finally {
+      setIsBlocking(false)
+    }
+  }
+
 
   return (
     <ProtectedRoute>
@@ -356,13 +396,42 @@ export default function ChatListPage() {
                             <button
                               onClick={(e) => {
                                 e.stopPropagation()
-                                setShowReportModal({ chatId: chat.chatroomId, partnerName: chat.partnerName })
+                                setShowReportModal({ chatId: chat.chatroomId, partnerName: chat.partnerName || '알 수 없는 사용자' })
                                 setShowMenu(null)
                               }}
                               className="w-full px-4 py-3 flex items-center gap-3 text-left hover:bg-[#FEF3C7] transition-colors"
                             >
                               <Flag className="w-4 h-4 text-[#F59E0B]" />
                               <span className="text-sm text-[#F59E0B]">신고하기</span>
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                const currentUserId = typeof window !== 'undefined' ? 
+                                  parseInt(localStorage.getItem('userId') || '0') : 0
+                                const partnerId = chat.user1Id === currentUserId ? chat.user2Id : chat.user1Id || chat.partnerId || 0
+                                
+                                setShowBlockModal({ 
+                                  chatId: chat.chatroomId, 
+                                  partnerId: partnerId,
+                                  partnerName: chat.partnerName || '알 수 없는 사용자',
+                                  isBlocked: chat.isBlocked || false
+                                })
+                                setShowMenu(null)
+                              }}
+                              className="w-full px-4 py-3 flex items-center gap-3 text-left hover:bg-[#FEE2E2] transition-colors"
+                            >
+                              {chat.isBlocked ? (
+                                <>
+                                  <Unlock className="w-4 h-4 text-[#10B981]" />
+                                  <span className="text-sm text-[#10B981]">차단 해제</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Ban className="w-4 h-4 text-[#EF4444]" />
+                                  <span className="text-sm text-[#EF4444]">차단하기</span>
+                                </>
+                              )}
                             </button>
                             <button
                               onClick={(e) => {
@@ -433,6 +502,71 @@ export default function ChatListPage() {
               reportedUserName={showReportModal.partnerName}
               isSubmitting={isReporting}
             />
+          )}
+
+          {/* Block Modal */}
+          {showBlockModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                    showBlockModal.isBlocked ? 'bg-[#D1FAE5]' : 'bg-[#FEE2E2]'
+                  }`}>
+                    {showBlockModal.isBlocked ? (
+                      <Unlock className="w-6 h-6 text-[#10B981]" />
+                    ) : (
+                      <Ban className="w-6 h-6 text-[#EF4444]" />
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-[#111827]">
+                      {showBlockModal.isBlocked ? '차단 해제' : '사용자 차단'}
+                    </h3>
+                    <p className="text-sm text-[#6B7280]">
+                      {showBlockModal.partnerName}님을 {showBlockModal.isBlocked ? '차단 해제' : '차단'}하시겠습니까?
+                    </p>
+                  </div>
+                </div>
+
+                <div className={`p-4 rounded-xl mb-4 ${
+                  showBlockModal.isBlocked 
+                    ? 'bg-[#ECFDF5] border border-[#D1FAE5]' 
+                    : 'bg-[#FEF2F2] border border-[#FEE2E2]'
+                }`}>
+                  {showBlockModal.isBlocked ? (
+                    <p className="text-sm text-[#065F46]">
+                      차단을 해제하면 이 사용자의 메시지를 다시 받을 수 있습니다.
+                    </p>
+                  ) : (
+                    <p className="text-sm text-[#991B1B]">
+                      차단하면 이 사용자의 메시지를 더 이상 받지 않습니다.<br />
+                      차단된 기간 동안의 메시지는 전달되지 않으며, 차단 해제 후에도 과거 메시지는 받을 수 없습니다.
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowBlockModal(null)}
+                    disabled={isBlocking}
+                    className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                  >
+                    취소
+                  </button>
+                  <button
+                    onClick={handleBlockUser}
+                    disabled={isBlocking}
+                    className={`flex-1 px-4 py-3 text-white rounded-lg transition-colors disabled:opacity-50 ${
+                      showBlockModal.isBlocked
+                        ? 'bg-[#10B981] hover:bg-[#059669]'
+                        : 'bg-[#EF4444] hover:bg-[#DC2626]'
+                    }`}
+                  >
+                    {isBlocking ? '처리 중...' : showBlockModal.isBlocked ? '차단 해제' : '차단하기'}
+                  </button>
+                </div>
+              </div>
+            </div>
           )}
         </div>
       </div>

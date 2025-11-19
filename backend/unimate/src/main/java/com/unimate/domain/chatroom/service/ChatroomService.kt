@@ -10,6 +10,7 @@ import com.unimate.domain.message.entity.Message
 import com.unimate.domain.message.repository.MessageRepository
 import com.unimate.global.exception.ServiceException
 import com.unimate.domain.user.user.repository.UserRepository
+import com.unimate.domain.userBlock.service.UserBlockService
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
 import org.springframework.security.access.AccessDeniedException
@@ -26,7 +27,8 @@ class ChatroomService(
     private val messageRepository: MessageRepository,
     private val userRepository: UserRepository,
     private val userSessionService: UserSessionService,
-    private val matchRepository: MatchRepository
+    private val matchRepository: MatchRepository,
+    private val userBlockService: UserBlockService
 ) {
 
     companion object {
@@ -110,6 +112,10 @@ class ChatroomService(
             partnerUniversity = partner.map { it.university }.orElse("")
         }
 
+        // 차단 여부 확인 추가!
+        val isBlocked = userBlockService.isBlocked(me, partnerId)  // 내가 상대방을 차단했는지
+        val isBlockedByPartner = userBlockService.isBlocked(partnerId, me)  // 상대방이 나를 차단했는지
+
         return ChatRoomDetailResponse(
             chatroomId = room.id,
             user1Id = room.user1Id,
@@ -117,6 +123,8 @@ class ChatroomService(
             partnerName = partnerName,
             partnerUniversity = partnerUniversity,
             isPartnerDeleted = isPartnerDeleted,
+            isBlocked = isBlocked,
+            isBlockedByPartner = isBlockedByPartner,
             status = room.status.name,
             user1Status = room.user1Status.name,
             user2Status = room.user2Status.name,
@@ -180,12 +188,16 @@ class ChatroomService(
                 messageRepository.countByChatroom_IdAndSenderId(roomId, partner)
             }
 
+            // 차단 여부 확인 추가
+            val isBlocked = userBlockService.isBlocked(me, partnerId)
+
             ChatRoomListResponse.ChatRoomListItem(
                 chatroomId = room.id,
                 partnerId = partnerId,
                 partnerName = partnerName,
                 lastMessage = lastSummary,
                 unreadCount = unreadCount,
+                isBlocked = isBlocked,
                 status = room.status.name,
                 updatedAt = ISO.format(room.updatedAt)
             )
@@ -214,6 +226,7 @@ class ChatroomService(
             messageRepository.findByChatroom_IdAndIdLessThanOrderByIdDesc(chatroomId, beforeMessageId, pageable)
         }
 
+        // 차단해도 이전 채팅 내용은 볼 수 있도록 필터링하지 않음
         val items = messages.map { m ->
             ChatHistoryResponse.ChatMessageItem(
                 messageId = m.id,
@@ -292,9 +305,6 @@ class ChatroomService(
         }
         if (room.status == ChatroomStatus.CLOSED) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "닫힌 채팅방입니다.")
-        }
-        if (room.blockedBy != null) {
-            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "차단된 채팅방입니다.")
         }
 
         return room
