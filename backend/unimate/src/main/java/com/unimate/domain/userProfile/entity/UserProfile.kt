@@ -5,6 +5,7 @@ import com.unimate.domain.user.user.entity.User
 import com.unimate.domain.userProfile.dto.ProfileCreateRequest
 import com.unimate.global.entity.BaseEntity
 import jakarta.persistence.*
+import org.springframework.data.elasticsearch.annotations.Document
 import java.time.LocalDate
 
 @Entity

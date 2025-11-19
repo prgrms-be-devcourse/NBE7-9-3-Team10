@@ -33,16 +33,22 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-web")
 
-    //WebSocket(STOMP) + spring-messaging
+    // WebSocket(STOMP) + spring-messaging
     implementation("org.springframework.boot:spring-boot-starter-websocket")
-    //WebSocket에서 @AuthenticationPrincipal 등 Security 연동
+    // WebSocket에서 @AuthenticationPrincipal 등 Security 연동
     implementation("org.springframework.security:spring-security-messaging")
 
+    // Elasticsearch (Spring Data + optional official Java client)
+    implementation("org.springframework.boot:spring-boot-starter-data-elasticsearch") // Spring Boot starter for Spring Data Elasticsearch
+
     compileOnly("org.projectlombok:lombok")
-    //developmentOnly("org.springframework.boot:spring-boot-devtools")
+    annotationProcessor("org.projectlombok:lombok")
+
+    // Databases / runtime
     runtimeOnly("com.h2database:h2")
     runtimeOnly("com.mysql:mysql-connector-j")
-    annotationProcessor("org.projectlombok:lombok")
+
+    // Testing
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
@@ -55,7 +61,7 @@ dependencies {
 
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.13")
 
-    //부하 테스트를 위해 랜덤 시드 생성 의존성
+    // 부하 테스트를 위해 랜덤 시드 생성 의존성
     implementation("org.springframework.boot:spring-boot-starter-batch")
     implementation("net.datafaker:datafaker:2.5.2")
 
@@ -63,7 +69,8 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
     // Redis 캐시 추상화
     implementation("org.springframework.boot:spring-boot-starter-cache")
-    // Jackson
+
+    // Jackson + Kotlin
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
