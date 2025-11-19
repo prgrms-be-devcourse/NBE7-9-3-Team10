@@ -9,19 +9,19 @@ data class MatchPreferenceResponse(
     val userId: Long,
     val startUseDate: LocalDate,
     val endUseDate: LocalDate,
-    val sleepTime: Int,
+    val sleepTime: Int?,
     @get:JsonProperty("isPetAllowed")
-    val isPetAllowed: Boolean,
+    val isPetAllowed: Boolean?,
     @get:JsonProperty("isSmoker")
-    val isSmoker: Boolean,
-    val cleaningFrequency: Int,
-    val preferredAgeGap: Int,
-    val hygieneLevel: Int,
+    val isSmoker: Boolean?,
+    val cleaningFrequency: Int?,
+    val preferredAgeGap: Int?,
+    val hygieneLevel: Int?,
     @get:JsonProperty("isSnoring")
-    val isSnoring: Boolean,
-    val drinkingFrequency: Int,
-    val noiseSensitivity: Int,
-    val guestFrequency: Int,
+    val isSnoring: Boolean?,
+    val drinkingFrequency: Int?,
+    val noiseSensitivity: Int?,
+    val guestFrequency: Int?,
     val updatedAt: LocalDateTime
 ) {
     companion object {

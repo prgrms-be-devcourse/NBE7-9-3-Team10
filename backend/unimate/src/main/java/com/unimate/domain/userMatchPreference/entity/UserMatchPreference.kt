@@ -6,6 +6,7 @@ import com.unimate.global.entity.BaseEntity
 import jakarta.persistence.*
 import java.time.LocalDate
 
+// 필드에 ? 추가한 이유 << 선택하지 않음이나 상관 없음 같은 확장성 생각해서 픽스. (ES 테스트 겸하여)
 @Entity
 @Table(name = "user_match_preference")
 class UserMatchPreference(
@@ -15,16 +16,16 @@ class UserMatchPreference(
 
     var startUseDate: LocalDate,
     var endUseDate: LocalDate,
-    var sleepTime: Int,
-    var isPetAllowed: Boolean,
-    var isSmoker: Boolean,
-    var cleaningFrequency: Int,
-    var preferredAgeGap: Int,
-    var hygieneLevel: Int,
-    var isSnoring: Boolean,
-    var drinkingFrequency: Int,
-    var noiseSensitivity: Int,
-    var guestFrequency: Int
+    var sleepTime: Int?,
+    var isPetAllowed: Boolean?,
+    var isSmoker: Boolean?,
+    var cleaningFrequency: Int?,
+    var preferredAgeGap: Int?,
+    var hygieneLevel: Int?,
+    var isSnoring: Boolean?,
+    var drinkingFrequency: Int?,
+    var noiseSensitivity: Int?,
+    var guestFrequency: Int?
 ) : BaseEntity() {
 
     fun update(dto: MatchPreferenceRequest) {
