@@ -17,7 +17,7 @@ export class BlockService {
       
       // HTTP 상태 코드에 따른 에러 메시지
       if (error.response?.status === 404) {
-        throw new Error('차단 API가 아직 구현되지 않았습니다. 백엔드 개발자에게 문의하세요.')
+        throw new Error('차단 API가 아직 구현되지 않았습니다.')
       } else if (error.response?.status === 401) {
         throw new Error('로그인이 필요합니다.')
       } else if (error.response?.status === 403) {
@@ -45,7 +45,7 @@ export class BlockService {
       
       // HTTP 상태 코드에 따른 에러 메시지
       if (error.response?.status === 404) {
-        throw new Error('차단 해제 API가 아직 구현되지 않았습니다. 백엔드 개발자에게 문의하세요.')
+        throw new Error('차단 해제 API가 아직 구현되지 않았습니다.')
       } else if (error.response?.status === 401) {
         throw new Error('로그인이 필요합니다.')
       } else if (error.response?.status === 403) {
