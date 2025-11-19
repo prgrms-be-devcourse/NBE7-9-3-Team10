@@ -1,6 +1,5 @@
-// API 공통 타입 정의
-
 // API 응답 기본 구조
+
 export interface ApiResponse<T = unknown> {
   data?: T;
   message?: string;
@@ -50,6 +49,12 @@ export const API_ENDPOINTS = {
   MATCH_LIKES: '/api/v1/matches/likes',
   MATCH_RESULTS: '/api/v1/matches/results',
 
+  // 리뷰 관련 
+  REVIEWS: '/api/v1/reviews',
+  REVIEWS_PENDING: '/api/v1/reviews/pending',
+  REVIEWS_BY_MATCH: '/api/v1/reviews/match',
+  REVIEWS_CAN_REMATCH: '/api/v1/reviews/match/can-rematch',
+  
   // 관리자 관련
   ADMIN_REPORTS: '/api/v1/admin/reports',
   ADMIN_REPORT_DETAIL: '/api/v1/admin/reports', // 상세 조회를 위해 /:id가 추가되어야 함
