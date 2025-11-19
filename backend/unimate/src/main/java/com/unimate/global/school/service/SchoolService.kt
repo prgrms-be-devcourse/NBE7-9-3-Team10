@@ -25,7 +25,7 @@ class SchoolService(
     fun getSchoolDomains(schoolName: String): List<String> {
         val schools = loadSchoolDomains()
 
-        val foundSchool = schools.find { it.schoolName.contains(schoolName) }
+        val foundSchool = schools.find { it.schoolName == schoolName }
 
         if (foundSchool != null) {
             log.info("학교 도메인 조회 성공: {} -> {}", schoolName, foundSchool.domains)
