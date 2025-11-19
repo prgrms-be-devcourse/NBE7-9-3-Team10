@@ -8,6 +8,10 @@ import com.unimate.domain.user.user.repository.UserRepository
 import com.unimate.domain.verification.dto.EmailCodeVerifyRequest
 import com.unimate.domain.verification.dto.EmailVerificationRequest
 import com.unimate.domain.verification.repository.VerificationRepository
+import com.unimate.domain.match.repository.MatchRepository
+import com.unimate.domain.review.repository.ReviewRepository
+import com.unimate.domain.userMatchPreference.repository.UserMatchPreferenceRepository
+import com.unimate.domain.userProfile.repository.UserProfileRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -42,6 +46,18 @@ class UserAuthControllerTest {
     @Autowired
     private lateinit var userRepository: UserRepository
 
+    @Autowired
+    private lateinit var userProfileRepository: UserProfileRepository
+
+    @Autowired
+    private lateinit var userMatchPreferenceRepository: UserMatchPreferenceRepository
+
+    @Autowired
+    private lateinit var matchRepository: MatchRepository
+
+    @Autowired
+    private lateinit var reviewRepository: ReviewRepository
+
     private val baseUrl = "/api/v1"
     private val testEmail = "testuser@snu.ac.kr"
     private val testPassword = "password123!"
@@ -49,6 +65,13 @@ class UserAuthControllerTest {
 
     @BeforeEach
     fun setup() {
+        reviewRepository.deleteAll()
+        matchRepository.deleteAll()
+        userMatchPreferenceRepository.deleteAll()
+        userProfileRepository.deleteAll()
+        userRepository.deleteAll()
+        verificationRepository.deleteAll()
+
         // 1단계: 이메일 인증 요청
         val verificationRequest = EmailVerificationRequest(testEmail)
 

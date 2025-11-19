@@ -2,6 +2,9 @@ package com.unimate.domain.userMatchPreference.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.unimate.domain.match.service.MatchCacheService
+import com.unimate.domain.match.repository.MatchRepository
+import com.unimate.domain.review.repository.ReviewRepository
+import com.unimate.domain.userMatchPreference.repository.UserMatchPreferenceRepository
 import com.unimate.domain.user.user.entity.Gender
 import com.unimate.domain.user.user.entity.User
 import com.unimate.domain.user.user.repository.UserRepository
@@ -49,6 +52,15 @@ class UserMatchPreferenceControllerTest {
     private lateinit var userProfileRepository: UserProfileRepository
 
     @Autowired
+    private lateinit var matchRepository: MatchRepository
+
+    @Autowired
+    private lateinit var reviewRepository: ReviewRepository
+
+    @Autowired
+    private lateinit var userMatchPreferenceRepository: UserMatchPreferenceRepository
+
+    @Autowired
     private lateinit var passwordEncoder: BCryptPasswordEncoder
 
     @Autowired
@@ -66,6 +78,9 @@ class UserMatchPreferenceControllerTest {
 
     @BeforeEach
     fun setup() {
+        reviewRepository.deleteAll()
+        matchRepository.deleteAll()
+        userMatchPreferenceRepository.deleteAll()
         userProfileRepository.deleteAll()
         userRepository.deleteAll()
 

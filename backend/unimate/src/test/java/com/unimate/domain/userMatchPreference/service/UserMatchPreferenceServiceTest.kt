@@ -22,6 +22,8 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
+import com.unimate.domain.match.repository.MatchRepository
+import com.unimate.domain.review.repository.ReviewRepository
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -40,6 +42,12 @@ class UserMatchPreferenceServiceTest {
     @Autowired
     private lateinit var userMatchPreferenceRepository: UserMatchPreferenceRepository
 
+    @Autowired
+    private lateinit var matchRepository: MatchRepository
+
+    @Autowired
+    private lateinit var reviewRepository: ReviewRepository
+
     @MockitoBean
     private lateinit var matchCacheService: MatchCacheService
 
@@ -48,6 +56,8 @@ class UserMatchPreferenceServiceTest {
 
     @BeforeEach
     fun setup() {
+        reviewRepository.deleteAll()
+        matchRepository.deleteAll()
         userMatchPreferenceRepository.deleteAll()
         userProfileRepository.deleteAll()
         userRepository.deleteAll()

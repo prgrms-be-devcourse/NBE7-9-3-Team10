@@ -13,6 +13,7 @@ import com.unimate.domain.user.user.entity.User
 import com.unimate.domain.user.user.repository.UserRepository
 import com.unimate.domain.userMatchPreference.repository.UserMatchPreferenceRepository
 import com.unimate.domain.userProfile.repository.UserProfileRepository
+import com.unimate.domain.review.repository.ReviewRepository
 import com.unimate.global.exception.ServiceException
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -54,6 +55,7 @@ class AdminReportServiceTest {
     @Mock private lateinit var userProfileRepository: UserProfileRepository
     @Mock private lateinit var userMatchPreferenceRepository: UserMatchPreferenceRepository
     @Mock private lateinit var notificationRepository: NotificationRepository
+    @Mock private lateinit var reviewRepository: ReviewRepository
 
     @InjectMocks
     private lateinit var adminReportService: AdminReportService
