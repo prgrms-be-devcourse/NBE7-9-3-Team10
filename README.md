@@ -23,7 +23,7 @@ Spring Boot 기반의 **UniMate**는
 | --- | --- | --- | --- | --- |
 | <p align="center"><a href="https://github.com/weilim0513-tech"><img src="https://github.com/weilim0513-tech.png" width="100"></a></p> | <p align="center"><a href="https://github.com/Chehyeon-Kim23"><img src="https://github.com/Chehyeon-Kim23.png" width="100"></a></p> | <p align="center"><a href="https://github.com/HongRae-Kim"><img src="https://github.com/HongRae-Kim.png" width="100"></a></p> | <p align="center"><a href="https://github.com/BackSeungBeom"><img src="https://github.com/BackSeungBeom.png" width="100"></a></p> | <p align="center"><a href="https://github.com/rogrhrh"><img src="https://github.com/rogrhrh.png" width="100"></a></p> |
 | <p align="center"><b>팀장</b></p> | <p align="center"><b>팀원</b></p> | <p align="center"><b>팀원</b></p> | <p align="center"><b>팀원</b></p> | <p align="center"><b>팀원</b></p> |
-| <p align="center">매칭 선호도 등록<br>매칭 상태 취소<br>유사도 계산 로직<br>좋아요 보내기/취소<br>관리자 신고 조회/처리</p> | <p align="center">WebSocket을 적용한<br>실시간 채팅방/알림 구현</p> | <p align="center">자동/사용자 선택 필터<br>응답 처리/상태 결정<br>최종 확정/거절<br>리뷰 기능 구현</p> | <p align="center">JWT 기반 인증 시스템<br>전역 예외 처리<br>사용자 정보 관리</p> | <p align="center">유저 프로필<br>신고 접수 기능 구현<br>Redis적용과 부하테스트</p> |
+| <p align="center">매칭 선호도 등록<br>매칭 상태 취소<br>유사도 계산 로직<br>좋아요 보내기/취소<br>관리자 신고 조회/처리</p> | <p align="center">WebSocket을 적용한<br>실시간 채팅방/알림 구현</p> | <p align="center">자동/사용자 선택 필터<br>응답 처리/상태 결정<br>최종 확정/거절<br>리뷰 기능 구현</p> | <p align="center">JWT 기반 인증 시스템<br>전역 예외 처리<br>사용자 정보 관리</p> | <p align="center">유저 프로필<br>신고 접수 기능 구현<br>Redis적용과 부하테스트<br>GitHub Actions를 이용한 배포 시도</p> |
 ---
 
 ## 📝 유저 스토리
