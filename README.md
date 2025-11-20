@@ -23,7 +23,7 @@ Spring Boot 기반의 **UniMate**는
 | --- | --- | --- | --- | --- |
 | <p align="center"><a href="https://github.com/weilim0513-tech"><img src="https://github.com/weilim0513-tech.png" width="100"></a></p> | <p align="center"><a href="https://github.com/Chehyeon-Kim23"><img src="https://github.com/Chehyeon-Kim23.png" width="100"></a></p> | <p align="center"><a href="https://github.com/HongRae-Kim"><img src="https://github.com/HongRae-Kim.png" width="100"></a></p> | <p align="center"><a href="https://github.com/BackSeungBeom"><img src="https://github.com/BackSeungBeom.png" width="100"></a></p> | <p align="center"><a href="https://github.com/rogrhrh"><img src="https://github.com/rogrhrh.png" width="100"></a></p> |
 | <p align="center"><b>팀장</b></p> | <p align="center"><b>팀원</b></p> | <p align="center"><b>팀원</b></p> | <p align="center"><b>팀원</b></p> | <p align="center"><b>팀원</b></p> |
-| <p align="center">매칭 선호도 등록<br>매칭 상태 취소<br>유사도 계산 로직<br>좋아요 보내기/취소<br>관리자 신고 조회/처리</p> | <p align="center">WebSocket을 적용한<br>실시간 채팅방/알림 구현</p> | <p align="center">자동/사용자 선택 필터<br>응답 처리/상태 결정<br>최종 확정/거절</p> | <p align="center">JWT 기반 인증 시스템<br>전역 예외 처리<br>사용자 정보 관리</p> | <p align="center">유저 프로필<br>신고 접수 기능 구현<br>Redis적용과 부하테스트</p> |
+| <p align="center">매칭 선호도 등록<br>매칭 상태 취소<br>유사도 계산 로직<br>좋아요 보내기/취소<br>관리자 신고 조회/처리</p> | <p align="center">WebSocket을 적용한<br>실시간 채팅방/알림 구현</p> | <p align="center">자동/사용자 선택 필터<br>응답 처리/상태 결정<br>최종 확정/거절<br>리뷰 기능 구현</p> | <p align="center">JWT 기반 인증 시스템<br>전역 예외 처리<br>사용자 정보 관리</p> | <p align="center">유저 프로필<br>신고 접수 기능 구현<br>Redis적용과 부하테스트<br>GitHub Actions를 이용한 배포 시도</p> |
 ---
 
 ## 📝 유저 스토리
@@ -51,7 +51,7 @@ Spring Boot 기반의 **UniMate**는
 
  - **U-6 [신고 및 제재]**
     
-    문제되는 사용자를 관리자에게 **신고**
+    문제되는 사용자를 관리자에게 **신고 및 차단**
     
 
 ### 👨‍💻 관리자(Admin)
@@ -86,7 +86,8 @@ Spring Boot 기반의 **UniMate**는
 
 ## 🔧기술 스택
 <div align=left>
-    <img src="https://img.shields.io/badge/java-007396?style=for-the-badge&logo=OpenJDK&logoColor=white">
+    <img src="https://img.shields.io/badge/Kotlin-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white">
+    <img src="https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white">  
     <img src="https://img.shields.io/badge/springboot-6DB33F?style=for-the-badge&logo=springboot&logoColor=white">
     <img src="https://img.shields.io/badge/springsecurity-6DB33F?style=for-the-badge&logo=springsecurity&logoColor=white">
     <img src="https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=MySQL&logoColor=white">
@@ -97,12 +98,15 @@ Spring Boot 기반의 **UniMate**는
     <img src="https://img.shields.io/badge/nextdotjs-000000?style=for-the-badge&logo=nextdotjs&logoColor=white">
     <img src="https://img.shields.io/badge/tailwindcss-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white">
     <img src="https://img.shields.io/badge/websocket-4B32C3?style=for-the-badge&logo=socket.io&logoColor=white">
+    <img src="https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white">
+
 </div>
 
 ---
 
 ## **🔗 ERD (Entity Relationship Diagram)**
-<img width="1292" height="1066" alt="Untitled" src="https://github.com/user-attachments/assets/4a22a929-bec3-4c92-9d58-bd9ba1a04ccc" />
+<img width="1292" height="1710" alt="Untitled (1)" src="https://github.com/user-attachments/assets/2e4bb761-6b74-4958-a55f-82b0b66263ba" />
+
 
 ---
 
