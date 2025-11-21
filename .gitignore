@@ -68,3 +68,8 @@ build/
 
 #=== custom ===
 /backend/unimate/src/main/resources/cache/*
+
+# === Environment variables ===
+.env
+.env.local
+.env.*.local

@@ -24,6 +24,7 @@ configurations {
 }
 repositories {
     mavenCentral()
+    maven(url = "https://maven.pkg.jetbrains.space/public/p/kotlinx-coroutines/maven")
 }
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
@@ -70,9 +71,10 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 
     // Kotlin Coroutines - 비동기 작업을 위한 코루틴 라이브러리
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.7.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-spring:1.7.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.8.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-spring:1.8.1")
+
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.4.0")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 }
