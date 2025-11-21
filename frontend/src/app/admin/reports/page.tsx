@@ -7,14 +7,14 @@ import AdminHeader from '@/components/layout/AdminHeader';
 
 export default function AdminReportsPage() {
   return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <AdminHeader />
-            <AdminProtectedRoute>
-        <main className="p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <AdminHeader />
+      <AdminProtectedRoute>
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="max-w-6xl mx-auto">
             <header className="mb-8">
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white">신고 관리</h1>
-              <p className="text-gray-600 dark:text-gray-300 mt-1">사용자 신고 내역을 확인하고 처리합니다.</p>
+              <p className="text-gray-600 dark:text-gray-400 mt-1">사용자 신고 내역을 확인하고 처리합니다.</p>
             </header>
 
             <Card>
@@ -30,7 +30,7 @@ export default function AdminReportsPage() {
             </Card>
           </div>
         </main>
-        </AdminProtectedRoute>
-      </div>
+      </AdminProtectedRoute>
+    </div>
   );
 }

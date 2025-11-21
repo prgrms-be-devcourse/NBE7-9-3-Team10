@@ -75,14 +75,14 @@ export function ReviewForm({ matchId, targetUserId, onSuccess, review, isEditMod
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           평점
         </label>
         <StarRating rating={rating} onRatingChange={setRating} />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
           한줄평
         </label>
         <Input
@@ -94,14 +94,16 @@ export function ReviewForm({ matchId, targetUserId, onSuccess, review, isEditMod
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
           이 사용자와 다시 매칭하고 싶나요?
         </label>
         <div className="flex gap-4 mt-2">
           <button
             type="button"
             className={`px-4 py-2 rounded-lg transition-colors ${
-              recommend ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-700"
+              recommend 
+                ? "bg-blue-600 dark:bg-blue-500 text-white" 
+                : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
             }`}
             onClick={() => setRecommend(true)}
           >
@@ -110,7 +112,9 @@ export function ReviewForm({ matchId, targetUserId, onSuccess, review, isEditMod
           <button
             type="button"
             className={`px-4 py-2 rounded-lg transition-colors ${
-              !recommend ? "bg-red-500 text-white" : "bg-gray-200 text-gray-700"
+              !recommend 
+                ? "bg-red-500 dark:bg-red-600 text-white" 
+                : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
             }`}
             onClick={() => setRecommend(false)}
           >
@@ -120,7 +124,7 @@ export function ReviewForm({ matchId, targetUserId, onSuccess, review, isEditMod
       </div>
 
       {error && (
-        <div className="text-red-500 text-sm">{error.message}</div>
+        <div className="text-red-500 dark:text-red-400 text-sm">{error.message}</div>
       )}
 
       <Button type="submit" disabled={loading} className="w-full">

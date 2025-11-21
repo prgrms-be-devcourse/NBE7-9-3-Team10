@@ -124,6 +124,7 @@ export const getErrorMessage = (error: unknown): string => {
   }
   
   if (error && typeof error === 'object') {
+    // ApiError 타입인 경우 (인터셉터에서 변환된 에러)
     if ('message' in error) {
       return String(error.message);
     }
@@ -132,12 +133,11 @@ export const getErrorMessage = (error: unknown): string => {
     if ('response' in error) {
       const axiosError = error as any;
       const responseData = axiosError.response?.data;
+      // 백엔드 ErrorResponse 구조: { timestamp, status, error, message }
       if (responseData?.message) {
         return responseData.message;
       }
-      if (responseData?.error) {
-        return responseData.error;
-      }
+      // 'error' 필드는 errorCode이므로 메시지로 사용하지 않음
       return `서버 오류 (${axiosError.response?.status || '알 수 없음'})`;
     }
     

@@ -165,16 +165,16 @@ const MatchDetailModal: FC<MatchDetailModalProps> = ({ isOpen, onClose, match, o
       {toast && (
         <div className="fixed top-20 right-6 z-[60] max-w-sm animate-slide-in-right">
           <div className={`rounded-lg p-4 shadow-2xl ${
-            toast.type === 'success' ? 'bg-green-50 border-2 border-green-200' :
-            toast.type === 'info' ? 'bg-blue-50 border-2 border-blue-200' :
-            'bg-red-50 border-2 border-red-200'
+            toast.type === 'success' ? 'bg-green-50 dark:bg-green-900/20 border-2 border-green-200 dark:border-green-800' :
+            toast.type === 'info' ? 'bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800' :
+            'bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800'
           }`}>
             <div className="flex items-start">
               <svg 
                 className={`w-5 h-5 mr-3 flex-shrink-0 ${
-                  toast.type === 'success' ? 'text-green-600' :
-                  toast.type === 'info' ? 'text-blue-600' :
-                  'text-red-600'
+                  toast.type === 'success' ? 'text-green-600 dark:text-green-400' :
+                  toast.type === 'info' ? 'text-blue-600 dark:text-blue-400' :
+                  'text-red-600 dark:text-red-400'
                 }`}
                 fill="currentColor" 
                 viewBox="0 0 20 20"
@@ -188,9 +188,9 @@ const MatchDetailModal: FC<MatchDetailModalProps> = ({ isOpen, onClose, match, o
                 )}
               </svg>
               <p className={`text-sm font-medium ${
-                toast.type === 'success' ? 'text-green-800' :
-                toast.type === 'info' ? 'text-blue-800' :
-                'text-red-800'
+                toast.type === 'success' ? 'text-green-800 dark:text-green-300' :
+                toast.type === 'info' ? 'text-blue-800 dark:text-blue-300' :
+                'text-red-800 dark:text-red-300'
               }`}>
                 {toast.message}
               </p>
@@ -210,7 +210,7 @@ const MatchDetailModal: FC<MatchDetailModalProps> = ({ isOpen, onClose, match, o
             <span className="text-gray-300">•</span>
             <span>{match.gender === 'MALE' ? '남학생' : '여학생'} · {match.age}세</span>
             <span className="text-gray-300">•</span>
-            <span className="text-[#4F46E5] font-semibold">매칭률 {Math.round((match.preferenceScore || 0) * 100)}%</span>
+            <span className="text-indigo-600 dark:text-indigo-400 font-semibold">매칭률 {Math.round((match.preferenceScore || 0) * 100)}%</span>
           </div>
         </div>
 
@@ -272,7 +272,7 @@ const MatchDetailModal: FC<MatchDetailModalProps> = ({ isOpen, onClose, match, o
             <button
               onClick={handleLikeClick}
               disabled={isLiking}
-              className="flex-1 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 bg-[#EF4444] text-white hover:bg-[#DC2626] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 bg-red-600 dark:bg-red-500 text-white hover:bg-red-700 dark:hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLiking ? (
                 <>
@@ -295,7 +295,7 @@ const MatchDetailModal: FC<MatchDetailModalProps> = ({ isOpen, onClose, match, o
             <button
               onClick={handleLikeClick}
               disabled={isLiking}
-              className="flex-1 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLiking ? (
                 <>
@@ -318,7 +318,7 @@ const MatchDetailModal: FC<MatchDetailModalProps> = ({ isOpen, onClose, match, o
           
           <button
             onClick={() => setIsReportModalOpen(true)}
-            className="px-6 py-3 border border-[#E5E7EB] text-[#6B7280] rounded-lg hover:bg-[#F9FAFB] transition-colors flex items-center gap-2"
+            className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
               <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path>

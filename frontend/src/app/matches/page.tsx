@@ -288,7 +288,7 @@ export default function MatchesPage() {
                         <h3 className="text-lg font-bold text-gray-900 dark:text-white">필터</h3>
                         <button
                           onClick={handleResetFilters}
-                          className="text-sm text-[#6366F1] hover:text-[#4F46E5] font-medium"
+                          className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
                         >
                           초기화
                         </button>

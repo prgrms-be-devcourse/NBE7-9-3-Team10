@@ -106,9 +106,9 @@ export default function AppHeader() {
 
   if (isLoading) {
     return (
-      <header className="bg-white border-b border-[#E5E7EB] sticky top-0 z-20">
+      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-20">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#4F46E5]"></div>
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 dark:border-blue-500"></div>
         </div>
       </header>
     )
@@ -116,13 +116,13 @@ export default function AppHeader() {
 
   if (!isAuthenticated) {
     return (
-      <header className="bg-white border-b border-[#E5E7EB] sticky top-0 z-20">
+      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-20">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <div className="w-8 h-8 bg-[#4F46E5] rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-blue-600 dark:bg-blue-500 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-sm">U</span>
             </div>
-            <span className="text-xl font-bold text-[#4F46E5]">UniMate</span>
+            <span className="text-xl font-bold text-blue-600 dark:text-blue-400">UniMate</span>
           </Link>
 
           <div className="flex items-center gap-3">
@@ -132,7 +132,7 @@ export default function AppHeader() {
               </button>
             </Link>
             <Link href="/register">
-              <button className="px-4 py-2 bg-[#4F46E5] text-white hover:bg-[#4338CA] rounded-lg transition-colors">
+              <button className="px-4 py-2 bg-blue-600 dark:bg-blue-500 text-white hover:bg-blue-700 dark:hover:bg-blue-600 rounded-lg transition-colors">
                 회원가입
               </button>
             </Link>
@@ -143,16 +143,16 @@ export default function AppHeader() {
   }
 
   return (
-    <header className="bg-white border-b border-[#E5E7EB] sticky top-0 z-20">
+    <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-20">
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
         <button 
           onClick={() => router.push('/')}
           className="flex items-center gap-2 hover:opacity-80 transition-opacity"
         >
-          <div className="w-8 h-8 bg-[#4F46E5] rounded-lg flex items-center justify-center">
+          <div className="w-8 h-8 bg-blue-600 dark:bg-blue-500 rounded-lg flex items-center justify-center">
             <span className="text-white font-bold text-sm">U</span>
           </div>
-          <span className="text-xl font-bold text-[#4F46E5]">UniMate</span>
+          <span className="text-xl font-bold text-blue-600 dark:text-blue-400">UniMate</span>
         </button>
 
         <nav className="flex items-center gap-6">
@@ -166,8 +166,8 @@ export default function AppHeader() {
                 onClick={() => router.push(item.key)}
                 className={`flex items-center gap-1 px-3 py-1 rounded-lg transition-colors ${
                   isActive
-                    ? 'text-[#4F46E5] bg-[#EEF2FF] font-semibold'
-                    : 'text-[#6B7280] hover:bg-gray-50'
+                    ? 'text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900 font-semibold'
+                    : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -184,7 +184,7 @@ export default function AppHeader() {
             className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
             title="후기"
           >
-            <Star className="w-5 h-5 text-[#F59E0B]" />
+            <Star className="w-5 h-5 text-yellow-500 dark:text-yellow-400" />
           </button>
           
           <div className="relative flex items-center">
@@ -193,10 +193,10 @@ export default function AppHeader() {
               className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
               title="알림"
             >
-              <Bell className="w-5 h-5 text-[#6B7280]" />
+              <Bell className="w-5 h-5 text-gray-500 dark:text-gray-400" />
             </button>
             {unreadCount > 0 && (
-              <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#4F46E5] text-white text-xs rounded-full flex items-center justify-center">
+              <div className="absolute -top-1 -right-1 w-4 h-4 bg-blue-600 dark:bg-blue-500 text-white text-xs rounded-full flex items-center justify-center">
                 {unreadCount > 99 ? '99+' : unreadCount}
               </div>
             )}
@@ -207,7 +207,7 @@ export default function AppHeader() {
             className="flex items-center hover:bg-gray-100 rounded-lg transition-colors"
             title="로그아웃"
           >
-            <LogOut className="w-5 h-5 text-[#6B7280]" />
+            <LogOut className="w-5 h-5 text-gray-500 dark:text-gray-400" />
           </button>
         </div>
       </div>
@@ -239,15 +239,15 @@ export default function AppHeader() {
                 leaveFrom="opacity-100 translate-x-0"
                 leaveTo="opacity-0 translate-x-full"
               >
-                <Dialog.Panel className="h-full w-full max-w-md bg-white shadow-2xl overflow-y-auto">
-                  <div className="sticky top-0 bg-white border-b border-gray-200 p-6 z-10">
+                <Dialog.Panel className="h-full w-full max-w-md bg-white dark:bg-gray-800 shadow-2xl overflow-y-auto">
+                  <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-6 z-10">
                     <div className="flex items-center justify-between mb-2">
-                      <Dialog.Title className="text-2xl font-bold text-gray-900">
+                      <Dialog.Title className="text-2xl font-bold text-gray-900 dark:text-white">
                         리뷰
                       </Dialog.Title>
                       <button
                         onClick={() => setIsReviewModalOpen(false)}
-                        className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+                        className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-1"
                       >
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -256,13 +256,13 @@ export default function AppHeader() {
                     </div>
                     
                     {/* 탭 추가 */}
-                    <div className="flex gap-2 mt-4 border-b border-gray-200">
+                    <div className="flex gap-2 mt-4 border-b border-gray-200 dark:border-gray-700">
                       <button
                         onClick={() => setReviewTab('pending')}
                         className={`px-4 py-2 text-sm font-medium transition-colors ${
                           reviewTab === 'pending'
-                            ? 'text-[#4F46E5] border-b-2 border-[#4F46E5]'
-                            : 'text-gray-500 hover:text-gray-700'
+                            ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
+                            : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                         }`}
                       >
                         대기 중인 리뷰
@@ -271,8 +271,8 @@ export default function AppHeader() {
                         onClick={() => setReviewTab('written')}
                         className={`px-4 py-2 text-sm font-medium transition-colors ${
                           reviewTab === 'written'
-                            ? 'text-[#4F46E5] border-b-2 border-[#4F46E5]'
-                            : 'text-gray-500 hover:text-gray-700'
+                            ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
+                            : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                         }`}
                       >
                         작성된 리뷰

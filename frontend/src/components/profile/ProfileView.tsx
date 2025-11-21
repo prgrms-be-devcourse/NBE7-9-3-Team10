@@ -96,7 +96,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ onEdit, onCreate }) => {
               <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
                 프로필을 불러올 수 없습니다
               </h3>
-              <p className="text-red-600 mb-6">{error}</p>
+              <p className="text-red-600 dark:text-red-400 mb-6">{error}</p>
               <div className="space-x-4">
                 <Button onClick={() => window.location.reload()}>
                   다시 시도

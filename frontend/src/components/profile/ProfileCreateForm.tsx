@@ -134,15 +134,15 @@ const ProfileCreateForm: FC<ProfileCreateFormProps> = ({ onSuccess }) => {
 
           <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 my-6">
             <div
-              className="bg-blue-600 h-2 rounded-full transition-all duration-500 ease-in-out"
+              className="bg-blue-600 dark:bg-blue-500 h-2 rounded-full transition-all duration-500 ease-in-out"
               style={{ width: `${progressPercentage}%` }}
             ></div>
           </div>
 
           <div className="max-h-[60vh] overflow-y-auto px-2">
             {submitError && (
-              <div className="bg-red-50 border border-red-200 rounded-md p-3 mb-4">
-                <p className="text-red-600 text-sm">{submitError}</p>
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-3 mb-4">
+                <p className="text-red-600 dark:text-red-400 text-sm">{submitError}</p>
               </div>
             )}
 
@@ -265,7 +265,7 @@ const ProfileCreateForm: FC<ProfileCreateFormProps> = ({ onSuccess }) => {
             )}
           </div>
 
-          <div className="mt-6 pt-4 border-t">
+          <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
             {step === 1 && (
               <div className="flex gap-2 w-full">
                 <Button onClick={() => router.back()} variant="outline" className="w-full">

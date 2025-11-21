@@ -81,13 +81,13 @@ const AdminSignupForm = () => {
   };
 
   return (
-    <div className="w-full max-w-md bg-white rounded-2xl shadow p-8">
+    <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow p-8">
       <div className="flex flex-col items-center mb-6">
-        <div className="bg-red-600 text-white w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl mb-3">
+        <div className="bg-red-600 dark:bg-red-500 text-white w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl mb-3">
           A
         </div>
-        <h2 className="text-xl font-semibold mb-1">관리자 계정 만들기</h2>
-        <p className="text-sm text-gray-500 text-center">
+        <h2 className="text-xl font-semibold mb-1 text-gray-900 dark:text-white">관리자 계정 만들기</h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
           관리자 권한으로 시스템을 관리할 수 있습니다.
         </p>
       </div>
@@ -95,7 +95,7 @@ const AdminSignupForm = () => {
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* 이메일 */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             관리자 이메일
           </label>
           <input
@@ -103,16 +103,16 @@ const AdminSignupForm = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="admin@unimate.com"
-            className={`w-full border rounded-lg px-3 py-2 placeholder:text-gray-400 ${
-              errors.email ? 'border-red-500' : 'border-gray-300'
-            } focus:ring-2 focus:ring-red-500`}
+            className={`w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-white border rounded-lg px-3 py-2 placeholder:text-gray-400 dark:placeholder:text-gray-500 ${
+              errors.email ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+            } focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400`}
           />
-          {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+          {errors.email && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.email}</p>}
         </div>
 
         {/* 이름 */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             이름
           </label>
           <input
@@ -120,16 +120,16 @@ const AdminSignupForm = () => {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="관리자 이름"
-            className={`w-full border rounded-lg px-3 py-2 placeholder:text-gray-400 ${
-              errors.name ? 'border-red-500' : 'border-gray-300'
-            } focus:ring-2 focus:ring-red-500`}
+            className={`w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-white border rounded-lg px-3 py-2 placeholder:text-gray-400 dark:placeholder:text-gray-500 ${
+              errors.name ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+            } focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400`}
           />
-          {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+          {errors.name && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.name}</p>}
         </div>
 
         {/* 비밀번호 */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             비밀번호
           </label>
           <input
@@ -137,16 +137,16 @@ const AdminSignupForm = () => {
             value={password}
             onChange={(e) => handlePasswordChange(e.target.value)}
             placeholder="비밀번호를 입력하세요"
-            className={`w-full border rounded-lg px-3 py-2 placeholder:text-gray-400 ${
-              errors.password ? 'border-red-500' : 'border-gray-300'
-            } focus:ring-2 focus:ring-red-500`}
+            className={`w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-white border rounded-lg px-3 py-2 placeholder:text-gray-400 dark:placeholder:text-gray-500 ${
+              errors.password ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+            } focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400`}
           />
-          {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
+          {errors.password && <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.password}</p>}
         </div>
 
         {/* 비밀번호 확인 */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             비밀번호 확인
           </label>
           <input
@@ -154,34 +154,32 @@ const AdminSignupForm = () => {
             value={confirmPassword}
             onChange={(e) => handleConfirmPasswordChange(e.target.value)}
             placeholder="비밀번호를 다시 입력하세요"
-            className={`w-full border rounded-lg px-3 py-2 placeholder:text-gray-400 ${
-              errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
-            } focus:ring-2 focus:ring-red-500`}
+            className={`w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-white border rounded-lg px-3 py-2 placeholder:text-gray-400 dark:placeholder:text-gray-500 ${
+              errors.confirmPassword ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+            } focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400`}
           />
           {errors.confirmPassword && (
-            <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>
+            <p className="text-red-500 dark:text-red-400 text-sm mt-1">{errors.confirmPassword}</p>
           )}
         </div>
 
         {/* 에러 메시지 */}
-        {errors.form && <p className="text-red-500 text-sm">{errors.form}</p>}
+        {errors.form && <p className="text-red-500 dark:text-red-400 text-sm">{errors.form}</p>}
 
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-red-600 text-white py-2 rounded-lg mt-4 hover:bg-red-700 disabled:bg-gray-400"
+          className="w-full bg-red-600 dark:bg-red-500 text-white py-2 rounded-lg mt-4 hover:bg-red-700 dark:hover:bg-red-600 disabled:bg-gray-400 dark:disabled:bg-gray-600"
         >
           {loading ? '가입 중...' : '관리자 계정 만들기'}
         </button>
 
-        <div className="text-center text-sm text-gray-600 mt-6">
+        <div className="text-center text-sm text-gray-600 dark:text-gray-400 mt-6">
           이미 관리자 계정이 있으신가요?{' '}
-          <Link href="/admin/login" className="text-red-600 hover:underline font-medium">
+          <Link href="/admin/login" className="text-red-600 dark:text-red-400 hover:underline font-medium">
             관리자 로그인
           </Link>
         </div>
-
-        
       </form>
     </div>
   );

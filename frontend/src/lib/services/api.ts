@@ -74,16 +74,19 @@ const createApiInstance = (): AxiosInstance => {
       }
 
       let errorMessage = '알 수 없는 오류가 발생했습니다.';
+      let errorCode: string | undefined;
       
       if (error.response?.data) {
-        const responseData = error.response.data;
-        // 다양한 형태의 에러 메시지 추출 시도
+        const responseData = error.response.data as any;
+        // 백엔드 ErrorResponse 구조에 맞춰 처리
         if (typeof responseData === 'string') {
           errorMessage = responseData;
         } else if (typeof responseData === 'object') {
-          errorMessage = (responseData as any).message || 
-                        (responseData as any).error || 
-                        (responseData as any).errorMessage ||
+          // 백엔드는 'error' 필드에 errorCode를 담고 있음
+          errorCode = responseData.error || responseData.errorCode;
+          // 백엔드는 'message' 필드에 에러 메시지를 담고 있음
+          errorMessage = responseData.message || 
+                        responseData.errorMessage ||
                         errorMessage;
         }
       } else if (error.message) {
@@ -93,9 +96,9 @@ const createApiInstance = (): AxiosInstance => {
       const apiError: ApiError = {
         message: errorMessage,
         status: error.response?.status || 500,
-        timestamp: new Date().toISOString(),
+        timestamp: (error.response?.data as any)?.timestamp || new Date().toISOString(),
         path: error.config?.url,
-        errorCode: (error.response?.data as any)?.errorCode,
+        errorCode: errorCode, // 백엔드의 'error' 필드를 'errorCode'로 매핑
       };
 
       return Promise.reject(apiError);

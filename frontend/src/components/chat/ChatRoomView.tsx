@@ -309,14 +309,14 @@ export default function ChatRoomView({ chatroomId }: ChatRoomViewProps) {
   }
 
   return (
-    <div className="h-screen bg-[#F9FAFB] flex flex-col relative">
+    <div className="h-screen bg-gray-50 dark:bg-gray-900 flex flex-col relative">
       <AppHeader />
       
       {/* Toast Message */}
       {toast && (
         <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 animate-fade-in">
           <div className={`px-6 py-3 rounded-lg shadow-lg ${
-            toast.type === 'success' ? 'bg-[#10B981] text-white' : 'bg-[#EF4444] text-white'
+            toast.type === 'success' ? 'bg-green-500 dark:bg-green-600 text-white' : 'bg-red-500 dark:bg-red-600 text-white'
           }`}>
             <p className="font-medium">{toast.message}</p>
           </div>
@@ -324,28 +324,28 @@ export default function ChatRoomView({ chatroomId }: ChatRoomViewProps) {
       )}
 
       {/* Chat Info Bar */}
-      <div className="bg-white border-b border-[#E5E7EB] flex-shrink-0">
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
         <div className="px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button
                 onClick={() => router.back()}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
               >
-                <ArrowLeft className="w-5 h-5 text-gray-600" />
+                <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
               </button>
               <div>
-                <h2 className={`font-semibold ${isPartnerDeleted ? 'text-red-500' : 'text-[#111827]'}`}>
+                <h2 className={`font-semibold ${isPartnerDeleted ? 'text-red-500' : 'text-gray-900 dark:text-white'}`}>
                   {partnerName}
                 </h2>
                 {isPartnerDeleted ? (
-                  <p className="text-sm text-red-400">이 사용자는 탈퇴했습니다</p>
+                  <p className="text-sm text-red-400 dark:text-red-500">이 사용자는 탈퇴했습니다</p>
                 ) : isPartnerLeft ? (
-                  <p className="text-sm text-red-500">상대방이 채팅방에서 나갔습니다</p>
+                  <p className="text-sm text-red-500 dark:text-red-400">상대방이 채팅방에서 나갔습니다</p>
                 ) : isPartnerBlocked ? (
-                  <p className="text-sm text-orange-500">이 사용자를 차단했습니다</p>
+                  <p className="text-sm text-orange-500 dark:text-orange-400">이 사용자를 차단했습니다</p>
                 ) : (
-                  partnerInfo && <p className="text-sm text-[#6B7280]">{partnerInfo}</p>
+                  partnerInfo && <p className="text-sm text-gray-500 dark:text-gray-400">{partnerInfo}</p>
                 )}
               </div>
             </div>
@@ -355,12 +355,12 @@ export default function ChatRoomView({ chatroomId }: ChatRoomViewProps) {
               <div className="flex flex-col items-end gap-2">
                 {/* 상대방 응답 상태 표시 */}
                 {matchInfo.partnerResponse === 'ACCEPTED' && (
-                  <div className="bg-blue-50 text-blue-700 px-4 py-2 rounded-lg text-sm font-medium border border-blue-200 shadow-sm">
+                  <div className="bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-4 py-2 rounded-lg text-sm font-medium border border-blue-200 dark:border-blue-800 shadow-sm">
                     ⏰ 상대방이 확정을 기다리고 있습니다
                   </div>
                 )}
                 {matchInfo.partnerResponse === 'REJECTED' && (
-                  <div className="bg-red-50 text-red-700 px-4 py-2 rounded-lg text-sm font-medium border border-red-200 shadow-sm">
+                  <div className="bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 px-4 py-2 rounded-lg text-sm font-medium border border-red-200 dark:border-red-800 shadow-sm">
                     ❌ 상대방이 거절했습니다
                   </div>
                 )}
@@ -370,11 +370,11 @@ export default function ChatRoomView({ chatroomId }: ChatRoomViewProps) {
                   <button
                     onClick={handleRejectMatch}
                     disabled={isProcessing}
-                    className="group relative px-5 py-2.5 bg-white border border-gray-300 rounded-xl hover:border-[#EF4444] hover:bg-[#FEF2F2] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md"
+                    className="group relative px-5 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl hover:border-red-500 dark:hover:border-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md"
                   >
                     <div className="flex items-center gap-2">
-                      <XCircle className="w-4 h-4 text-gray-600 group-hover:text-[#EF4444] transition-colors" />
-                      <span className="font-semibold text-sm text-gray-700 group-hover:text-[#EF4444] transition-colors">
+                      <XCircle className="w-4 h-4 text-gray-600 dark:text-gray-400 group-hover:text-red-500 dark:group-hover:text-red-400 transition-colors" />
+                      <span className="font-semibold text-sm text-gray-700 dark:text-gray-300 group-hover:text-red-500 dark:group-hover:text-red-400 transition-colors">
                         거절
                       </span>
                     </div>
@@ -382,7 +382,7 @@ export default function ChatRoomView({ chatroomId }: ChatRoomViewProps) {
                   <button
                     onClick={handleConfirmMatch}
                     disabled={isProcessing}
-                    className="group relative px-5 py-2.5 bg-gradient-to-r from-[#4F46E5] to-[#6366F1] text-white rounded-xl hover:from-[#4338CA] hover:to-[#4F46E5] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg"
+                    className="group relative px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-500 dark:to-indigo-500 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 dark:hover:from-blue-600 dark:hover:to-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg"
                   >
                     <div className="flex items-center gap-2">
                       <CheckCircle className="w-4 h-4" />
@@ -406,7 +406,7 @@ export default function ChatRoomView({ chatroomId }: ChatRoomViewProps) {
       >
         <div className="space-y-4">
           {messages.length === 0 ? (
-            <div className="text-center text-gray-500 py-8">
+            <div className="text-center text-gray-500 dark:text-gray-400 py-8">
               아직 메시지가 없습니다. 첫 메시지를 보내보세요!
             </div>
           ) : (
@@ -428,14 +428,14 @@ export default function ChatRoomView({ chatroomId }: ChatRoomViewProps) {
                   <div
                     className={`max-w-md px-4 py-3 rounded-2xl ${
                       isMe
-                        ? 'bg-[#4F46E5] text-white'
-                        : 'bg-white border border-[#E5E7EB] text-[#111827]'
+                        ? 'bg-blue-600 dark:bg-blue-500 text-white'
+                        : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white'
                     }`}
                   >
                     <p className="mb-1">{m.content}</p>
                     <p
                       className={`text-xs ${
-                        isMe ? 'text-[#C7D2FE]' : 'text-[#9CA3AF]'
+                        isMe ? 'text-blue-200 dark:text-blue-300' : 'text-gray-500 dark:text-gray-400'
                       }`}
                     >
                       {messageTime}
@@ -455,7 +455,7 @@ export default function ChatRoomView({ chatroomId }: ChatRoomViewProps) {
         <div className="absolute bottom-28 left-1/2 transform -translate-x-1/2 z-20">
           <button
             onClick={scrollToBottom}
-            className="bg-[#4F46E5] text-white px-4 py-2 rounded-full shadow-lg hover:bg-[#4338CA] transition-colors flex items-center gap-2"
+            className="bg-blue-600 dark:bg-blue-500 text-white px-4 py-2 rounded-full shadow-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors flex items-center gap-2"
           >
             <span className="text-sm font-medium">새 메시지</span>
             <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
@@ -464,22 +464,22 @@ export default function ChatRoomView({ chatroomId }: ChatRoomViewProps) {
       )}
 
       {/* Message Input */}
-      <div className="bg-white border-t border-[#E5E7EB] flex-shrink-0">
+      <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
         <div className="px-4 py-4">
           {isPartnerDeleted ? (
-            <div className="text-center py-4 text-gray-500 bg-gray-50 rounded-xl">
+            <div className="text-center py-4 text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-xl">
               <p className="text-sm">탈퇴한 사용자와는 메시지를 주고받을 수 없습니다</p>
             </div>
           ) : isPartnerLeft ? (
-            <div className="text-center py-4 text-gray-500 bg-gray-50 rounded-xl">
+            <div className="text-center py-4 text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-xl">
               <p className="text-sm">상대방이 채팅방에서 나갔습니다</p>
             </div>
           ) : isPartnerBlocked ? (
-            <div className="text-center py-4 text-orange-500 bg-orange-50 rounded-xl border border-orange-200">
+            <div className="text-center py-4 text-orange-500 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/30 rounded-xl border border-orange-200 dark:border-orange-800">
               <p className="text-sm font-medium">차단된 사용자입니다. 메시지를 보낼 수 없습니다.</p>
             </div>
           ) : isBlockedByPartner ? (
-            <div className="text-center py-4 text-gray-500 bg-gray-50 rounded-xl">
+            <div className="text-center py-4 text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-xl">
               <p className="text-sm font-medium">메시지를 보낼 수 없습니다.</p>
             </div>
           ) : (
@@ -494,12 +494,12 @@ export default function ChatRoomView({ chatroomId }: ChatRoomViewProps) {
                     sendMessage(text)
                   }
                 }}
-                className="flex-1 px-4 py-3 border border-[#E5E7EB] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#4F46E5] focus:border-transparent"
+                className="flex-1 px-4 py-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600 dark:focus:ring-blue-500 focus:border-transparent placeholder:text-gray-400 dark:placeholder:text-gray-500"
               />
               <button
                 onClick={() => sendMessage(text)}
                 disabled={!text.trim()}
-                className="w-12 h-12 bg-[#4F46E5] text-white rounded-xl flex items-center justify-center hover:bg-[#4338CA] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="w-12 h-12 bg-blue-600 dark:bg-blue-500 text-white rounded-xl flex items-center justify-center hover:bg-blue-700 dark:hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <Send className="w-5 h-5" />
               </button>

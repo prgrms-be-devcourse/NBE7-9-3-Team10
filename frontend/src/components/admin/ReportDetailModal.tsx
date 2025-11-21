@@ -74,15 +74,22 @@ const ReportDetailModal: FC<ReportDetailModalProps> = ({ reportId, onClose, onAc
         
         {isLoading && <div className="flex justify-center p-8"><LoadingSpinner /></div>}
         
-        {report && (
+        {error && !isLoading && (
+          <div className="text-center p-8">
+            <p className="text-red-500 dark:text-red-400 mb-4">오류: {error}</p>
+            <Button onClick={() => window.location.reload()}>다시 시도</Button>
+          </div>
+        )}
+        
+        {report && !isLoading && !error && (
           <>
             <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
               <InfoSection title="신고 상태" data={report.status} />
               <InfoSection title="신고 유형" data={report.category} />
               <InfoSection title="신고 내용" data={report.content} preWrap />
-              <hr className="dark:border-gray-700"/>
+              <hr className="border-gray-200 dark:border-gray-700"/>
               <UserInfo title="신고자 정보" user={report.reporterInfo} />
-              <hr className="dark:border-gray-700"/>
+              <hr className="border-gray-200 dark:border-gray-700"/>
               <UserInfo title="피신고자 정보" user={report.reportedInfo} />
             </div>
 
@@ -91,7 +98,7 @@ const ReportDetailModal: FC<ReportDetailModalProps> = ({ reportId, onClose, onAc
                 <p><span className="font-bold">주의:</span> 조치를 취하면 신고가 자동으로 처리 완료됩니다.</p>
               </div>
               
-              {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
+              {error && <p className="text-red-500 dark:text-red-400 text-sm mb-4 text-center">{error}</p>}
 
               <div className="flex justify-between items-center">
                 <Button variant="outline" onClick={onClose} disabled={isProcessing}>닫기</Button>
@@ -105,7 +112,7 @@ const ReportDetailModal: FC<ReportDetailModalProps> = ({ reportId, onClose, onAc
                     반려
                   </Button>
                   <Button
-                    variant="destructive"
+                    variant="danger"
                     onClick={() => handleAction('DEACTIVATE')}
                     disabled={isProcessing || isActionDisabled}
                     loading={isProcessing}
